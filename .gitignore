@@ -76,7 +76,6 @@ pids
 .pnp.js
 pnpm-debug.log*
 # Production builds
-public
 .rpt2_cache/
 .rts2_cache_cjs/
 .rts2_cache_es/

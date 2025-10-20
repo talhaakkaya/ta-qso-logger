@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background -->
+  <rect width="100" height="100" fill="#1a1a2e" rx="15"/>
+
+  <!-- Radio waves (left side) -->
+  <path d="M 25 50 Q 20 40, 15 35" stroke="#4ade80" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 25 50 Q 20 60, 15 65" stroke="#4ade80" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 30 50 Q 27 43, 24 40" stroke="#4ade80" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 30 50 Q 27 57, 24 60" stroke="#4ade80" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Radio waves (right side) -->
+  <path d="M 75 50 Q 80 40, 85 35" stroke="#4ade80" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 75 50 Q 80 60, 85 65" stroke="#4ade80" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 70 50 Q 73 43, 76 40" stroke="#4ade80" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 70 50 Q 73 57, 76 60" stroke="#4ade80" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Antenna tower -->
+  <rect x="47" y="35" width="6" height="30" fill="#60a5fa" rx="1"/>
+
+  <!-- Antenna base -->
+  <rect x="40" y="65" width="20" height="8" fill="#3b82f6" rx="2"/>
+
+  <!-- Antenna top -->
+  <circle cx="50" cy="30" r="4" fill="#fbbf24"/>
+  <circle cx="50" cy="30" r="2.5" fill="#fef3c7"/>
+
+  <!-- Ground lines -->
+  <line x1="35" y1="75" x2="45" y2="75" stroke="#6b7280" stroke-width="1.5"/>
+  <line x1="55" y1="75" x2="65" y2="75" stroke="#6b7280" stroke-width="1.5"/>
+</svg>
