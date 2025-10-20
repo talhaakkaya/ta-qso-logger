@@ -64,7 +64,39 @@ A web-based QSO logger for amateur radio operators to track and manage contacts 
 
 ## Docker Installation
 
-For easier deployment using Docker:
+### Option 1: Using Pre-built Image (Recommended)
+
+Pull and run the latest image from GitHub Container Registry:
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/talhaakkaya/ta-qso-logger:latest
+
+# Run with docker-compose (recommended)
+# 1. Download docker-compose.yml and .env.docker from the repository
+# 2. Create .env file with your credentials
+# 3. Update docker-compose.yml to use the pre-built image:
+#    image: ghcr.io/talhaakkaya/ta-qso-logger:latest
+# 4. Start the application
+docker-compose up -d
+```
+
+Or run manually:
+```bash
+docker run -d \
+  -p 3000:3000 \
+  -e NEXTAUTH_SECRET="your-secret-key-here" \
+  -e NEXTAUTH_URL="http://localhost:3000" \
+  -e MONGODB_URI="mongodb://host.docker.internal:27017/qso-logger" \
+  -e GOOGLE_CLIENT_ID="your-google-client-id" \
+  -e GOOGLE_CLIENT_SECRET="your-google-client-secret" \
+  --name qso-logger \
+  ghcr.io/talhaakkaya/ta-qso-logger:latest
+```
+
+### Option 2: Build from Source
+
+For development or customization:
 
 1. **Clone the repository**
    ```bash
