@@ -1,0 +1,42 @@
+{
+  "name": "qso-logger-nextjs",
+  "private": true,
+  "version": "1.6.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .ts,.tsx",
+    "type-check": "tsc --noEmit",
+    "prettier": "prettier --write ."
+  },
+  "dependencies": {
+    "@auth/core": "^0.40.0",
+    "bootstrap": "^5.3.2",
+    "bootstrap-icons": "^1.11.0",
+    "date-fns": "^2.30.0",
+    "leaflet": "^1.9.4",
+    "mongodb": "^6.19.0",
+    "mongoose": "^8.18.0",
+    "next": "^15.0.0",
+    "next-auth": "^5.0.0-beta.29",
+    "prettier": "^3.6.2",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.9.1",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-leaflet": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "eslint": "^9.34.0",
+    "eslint-config-next": "^15.0.0",
+    "typescript": "^5.2.2"
+  }
+}
