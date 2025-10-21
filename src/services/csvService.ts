@@ -242,7 +242,9 @@ export function validateCSVMapping(columnMapping: CSVFieldMapping): {
   return { valid: true };
 }
 
-export default {
+const csvService = {
   importCSVRecords,
   validateCSVMapping,
 };
+
+export default csvService;

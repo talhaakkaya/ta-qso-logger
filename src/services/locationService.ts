@@ -59,7 +59,9 @@ export function getCoordinatesFromResult(result: NominatimResult): {
   };
 }
 
-export default {
+const locationService = {
   searchLocation,
   getCoordinatesFromResult,
 };
+
+export default locationService;

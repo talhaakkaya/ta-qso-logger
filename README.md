@@ -1,11 +1,12 @@
 # QSO Logger
 
-A web-based QSO logger for amateur radio operators to track and manage contacts with ADIF file support. Features interactive world maps showing contact locations, grid square conversion, and duplicate detection for clean record keeping.
+A modern web-based QSO logger for amateur radio operators to track and manage contacts with ADIF and CSV file support. Features interactive world maps, dark/light theme, grid square conversion, and a clean responsive interface built with Next.js and shadcn/ui.
 
 ## Features
 
 - 📡 **QSO Management** - Create, edit, and delete amateur radio contact records
 - 📁 **ADIF Support** - Import and export contacts in ADIF format (.adi files)
+- 📊 **CSV Import/Export** - Import and export contacts in CSV format with flexible column mapping
 - 🗺️ **Interactive Maps** - View all contacts on a world map with Leaflet
 - 📍 **Grid Square Support** - Maidenhead locator system with coordinate conversion
 - 🎨 **Color-Coded Markers** - Visual distinction by operating mode (FM, SSB, Digital, CW)
@@ -13,7 +14,37 @@ A web-based QSO logger for amateur radio operators to track and manage contacts 
 - 🌍 **Timezone Support** - Configure your preferred timezone for logging
 - ⚙️ **User Settings** - Store station callsign, default transmit power, and timezone preferences
 - 🔐 **Google Authentication** - Secure login with user-specific data isolation
-- 📱 **Responsive Design** - Works on desktop, tablet, and mobile devices
+- 🌓 **Dark/Light Mode** - Beautiful theme support with system preference detection
+- 📱 **Responsive Design** - Works on desktop, tablet, and mobile devices with expandable table rows
+- 🎯 **Simple & Advanced Modes** - Beginner-friendly simple mode or advanced mode for experienced operators
+
+## Recent Updates
+
+### UI Modernization (Latest)
+- ✨ **Migrated to shadcn/ui + Tailwind CSS** - Modern, accessible component library replacing Bootstrap
+- 🎨 **New Login Page Design** - Light-themed landing page with dark mode support
+- 🌓 **Dark/Light Theme Toggle** - Seamless theme switching across the entire application
+- 📱 **Enhanced Mobile Experience** - Improved responsive tables with expandable rows
+
+### Code Refactoring
+- 🏗️ **Service Layer Architecture** - Extracted business logic into dedicated services:
+  - `csvService` - CSV parsing and import/export logic
+  - `locationService` - Nominatim API integration for location search
+- 🎣 **Custom React Hooks** - Reusable hooks for cleaner code:
+  - `useUserMode` - User mode state management
+  - `useModal` - Generic modal state handling
+  - `useLocationSearch` - Location search functionality
+  - `useQSOActions` - Consolidated CRUD operations
+- ♻️ **Shared Components** - Eliminated code duplication with reusable components
+- 📉 **Reduced File Sizes** - Major components reduced by 12-25% through refactoring
+- 🧪 **Improved Testability** - Better separation of concerns and modular architecture
+
+### Technology Stack Updates
+- ⬆️ **Next.js 15.5.6** - Latest features and performance improvements
+- ⬆️ **React 19.1.0** - Latest React version
+- 📦 **@tanstack/react-table** - Advanced table functionality with sorting and pagination
+- 🎭 **next-themes** - Seamless dark mode implementation
+- 🎨 **lucide-react** - Beautiful, consistent icon set
 
 ## Prerequisites
 
@@ -62,89 +93,6 @@ A web-based QSO logger for amateur radio operators to track and manage contacts 
 
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## Docker Installation
-
-### Option 1: Using Pre-built Image (Recommended)
-
-Pull and run the latest image from GitHub Container Registry:
-
-```bash
-# Pull the latest image
-docker pull ghcr.io/talhaakkaya/ta-qso-logger:latest
-
-# Run with docker-compose (recommended)
-# 1. Download docker-compose.yml and .env.docker from the repository
-# 2. Create .env file with your credentials
-# 3. Update docker-compose.yml to use the pre-built image:
-#    image: ghcr.io/talhaakkaya/ta-qso-logger:latest
-# 4. Start the application
-docker-compose up -d
-```
-
-Or run manually:
-```bash
-docker run -d \
-  -p 3000:3000 \
-  -e NEXTAUTH_SECRET="your-secret-key-here" \
-  -e NEXTAUTH_URL="http://localhost:3000" \
-  -e MONGODB_URI="mongodb://host.docker.internal:27017/qso-logger" \
-  -e GOOGLE_CLIENT_ID="your-google-client-id" \
-  -e GOOGLE_CLIENT_SECRET="your-google-client-secret" \
-  --name qso-logger \
-  ghcr.io/talhaakkaya/ta-qso-logger:latest
-```
-
-### Option 2: Build from Source
-
-For development or customization:
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/talhaakkaya/ta-qso-logger.git
-   cd ta-qso-logger
-   ```
-
-2. **Set up environment variables**
-
-   Create a `.env` file in the root directory:
-   ```env
-   NEXTAUTH_SECRET=your-secret-key-here
-   GOOGLE_CLIENT_ID=your-google-client-id
-   GOOGLE_CLIENT_SECRET=your-google-client-secret
-   ```
-
-   You can use `.env.docker` as a template.
-
-3. **Set up Google OAuth**
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create OAuth 2.0 credentials
-   - Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
-   - Copy the Client ID and Client Secret to your `.env` file
-
-4. **Start the application with Docker Compose**
-   ```bash
-   docker-compose up -d
-   ```
-
-   This will start:
-   - MongoDB database on port 27017
-   - Next.js application on port 3000
-
-5. **View logs** (optional)
-   ```bash
-   docker-compose logs -f
-   ```
-
-6. **Stop the application**
-   ```bash
-   docker-compose down
-   ```
-
-7. **Stop and remove volumes** (deletes all data)
-   ```bash
-   docker-compose down -v
-   ```
-
 ## Usage
 
 ### Logging QSOs
@@ -165,6 +113,20 @@ For development or customization:
 
 1. Click **"Dışa Aktar"** in the sidebar
 2. Your QSO log will be downloaded in ADIF format
+
+### Importing CSV Files
+
+1. Click **"İçe Aktar (CSV)"** in the sidebar
+2. Select a CSV file containing your QSO records
+3. Map CSV columns to QSO fields (callsign, datetime, frequency, etc.)
+4. Click **"İçe Aktar"** to process the file
+5. Records will be validated and imported into your log
+
+### Exporting CSV Files
+
+1. Click **"Dışa Aktar"** in the sidebar
+2. Choose CSV format from the export options
+3. Your QSO log will be downloaded as a CSV file
 
 ### Viewing Contact Map
 
@@ -202,16 +164,30 @@ src/
 ├── app/              # Next.js App Router pages and API routes
 ├── components/       # React components
 │   ├── Dashboard/    # Main dashboard components
-│   ├── Layout/       # Header, Sidebar
-│   ├── Map/          # Leaflet map components
-│   ├── Modals/       # Modal dialogs
-│   └── Table/        # QSO table components
-├── contexts/         # React context providers
+│   ├── Filters/      # Search and filter components
+│   ├── Layout/       # Header, Sidebar, AppSidebar, ThemeToggle
+│   ├── Modals/       # Modal dialogs (QSO, Import, Settings, etc.)
+│   ├── Providers/    # Theme and context providers
+│   ├── shared/       # Reusable shared components
+│   ├── Table/        # QSO table components with @tanstack/react-table
+│   └── ui/           # shadcn/ui components (Button, Card, Dialog, etc.)
+├── contexts/         # React context providers (QSOContext)
 ├── hooks/            # Custom React hooks
+│   ├── useModal.ts           # Generic modal state management
+│   ├── useQSOActions.ts      # CRUD operations with notifications
+│   ├── useLocationSearch.ts  # Location search functionality
+│   ├── useUserMode.ts        # User mode state (simple/advanced)
+│   ├── useToast.ts           # Toast notifications
+│   └── use-mobile.tsx        # Mobile detection hook
+├── lib/              # Utility libraries (tailwind utils)
 ├── models/           # MongoDB Mongoose models
-├── services/         # Business logic (ADIF, API)
+├── services/         # Business logic
+│   ├── adifService.ts        # ADIF import/export
+│   ├── apiService.ts         # API communication
+│   ├── csvService.ts         # CSV parsing and import
+│   └── locationService.ts    # Nominatim API integration
 ├── types/            # TypeScript type definitions
-└── utils/            # Utility functions
+└── utils/            # Utility functions (grid square, timezone, etc.)
 ```
 
 ### Available Scripts
@@ -221,6 +197,33 @@ src/
 - `npm start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run type-check` - Run TypeScript type checking
+
+### Tech Stack
+
+**Frontend:**
+- Next.js 15.5.6 (App Router)
+- React 19.1.0
+- TypeScript
+- Tailwind CSS 3.x
+- shadcn/ui (Radix UI primitives)
+- lucide-react (icons)
+- next-themes (dark mode)
+- @tanstack/react-table (advanced tables)
+
+**Backend:**
+- Next.js API Routes
+- MongoDB with Mongoose ODM
+- NextAuth.js v5 (Google OAuth)
+
+**Mapping & Data:**
+- Leaflet & react-leaflet (interactive maps)
+- OpenStreetMap Nominatim API (location search)
+- papaparse (CSV parsing)
+
+**Development:**
+- ESLint
+- Prettier
+- TypeScript strict mode
 
 ## Contributing
 
@@ -239,8 +242,12 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 ## Acknowledgments
 
 - Amateur radio community for ADIF specifications
+- [shadcn/ui](https://ui.shadcn.com/) for the beautiful component library
+- [Radix UI](https://www.radix-ui.com/) for accessible UI primitives
 - [Leaflet](https://leafletjs.com/) for mapping capabilities
-- [OpenStreetMap](https://www.openstreetmap.org/) contributors for map tiles
+- [OpenStreetMap](https://www.openstreetmap.org/) contributors for map tiles and Nominatim API
+- [TanStack Table](https://tanstack.com/table) for advanced table functionality
+- [Lucide](https://lucide.dev/) for the icon set
 
 ---
 

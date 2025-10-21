@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -53,7 +54,7 @@ export default function SignIn() {
           <div className="flex flex-col lg:flex-row items-center py-12 gap-8">
             <div className="lg:w-1/2 text-center lg:text-left">
               <div className="flex items-center justify-center lg:justify-start gap-4 mb-6">
-                <img src="/favicon.svg" alt="TA QSO Logo" className="w-16 h-16" />
+                <Image src="/favicon.svg" alt="TA QSO Logo" className="w-16 h-16" width={64} height={64} />
                 <h1 className="text-5xl font-bold text-foreground">TA QSO Logger</h1>
               </div>
               <p className="text-xl mb-8 text-muted-foreground">
