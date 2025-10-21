@@ -1,22 +1,31 @@
 "use client";
 
 import React from "react";
-import { Container, Spinner } from "react-bootstrap";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "@/components/ui/sonner";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { AppSidebar } from "@/components/Layout/AppSidebar";
 import Header from "@/components/Layout/Header";
 import Footer from "@/components/Layout/Footer";
-import Sidebar from "@/components/Layout/Sidebar";
 import Dashboard from "@/components/Dashboard/Dashboard";
 import FilterSection from "@/components/Filters/FilterSection";
 import QSOTable from "@/components/Table/QSOTable";
 import QCodeModal from "@/components/Modals/QCodeModal";
+import SettingsModal from "@/components/Modals/SettingsModal";
+import ImportModal from "@/components/Modals/ImportModal";
+import CSVImportModal from "@/components/Modals/CSVImportModal";
+import QSOMapModal from "@/components/Modals/QSOMapModal";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { Loader2 } from "lucide-react";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [showQCodeModal, setShowQCodeModal] = React.useState(false);
+  const [showSettings, setShowSettings] = React.useState(false);
+  const [showImport, setShowImport] = React.useState(false);
+  const [showCSVImport, setShowCSVImport] = React.useState(false);
+  const [showQSOMap, setShowQSOMap] = React.useState(false);
 
   React.useEffect(() => {
     if (status === "unauthenticated") {
@@ -26,8 +35,8 @@ export default function HomePage() {
 
   if (status === "loading") {
     return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-dark">
-        <Spinner animation="border" variant="light" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 text-foreground animate-spin" />
       </div>
     );
   }
@@ -37,26 +46,46 @@ export default function HomePage() {
   }
 
   return (
-    <div className="d-flex flex-column min-vh-100">
-      <Header />
-      <div className="d-flex flex-grow-1">
-        <Sidebar onShowQCodes={() => setShowQCodeModal(true)} />
-        <div className="flex-grow-1">
-          <Container fluid className="py-3 px-2 px-md-3">
-            <Dashboard />
-            <FilterSection />
-            <QSOTable />
-          </Container>
-        </div>
-      </div>
-      <Footer />
+    <SidebarProvider>
+      <AppSidebar
+        onShowSettings={() => setShowSettings(true)}
+        onShowImport={() => setShowImport(true)}
+        onShowCSVImport={() => setShowCSVImport(true)}
+        onShowQSOMap={() => setShowQSOMap(true)}
+        onShowQCodes={() => setShowQCodeModal(true)}
+      />
+      <SidebarInset>
+        <Header />
+        <main className="flex-1 flex flex-col gap-4 p-4">
+          <Dashboard />
+          <FilterSection />
+          <QSOTable />
+        </main>
+        <Footer />
+      </SidebarInset>
 
       <QCodeModal
         show={showQCodeModal}
         onHide={() => setShowQCodeModal(false)}
       />
+      <SettingsModal
+        show={showSettings}
+        onHide={() => setShowSettings(false)}
+      />
+      <ImportModal
+        show={showImport}
+        onHide={() => setShowImport(false)}
+      />
+      <CSVImportModal
+        show={showCSVImport}
+        onHide={() => setShowCSVImport(false)}
+      />
+      <QSOMapModal
+        show={showQSOMap}
+        onHide={() => setShowQSOMap(false)}
+      />
 
-      <Toaster position="top-right" />
-    </div>
+      <Toaster position="top-right" richColors />
+    </SidebarProvider>
   );
 }

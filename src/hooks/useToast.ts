@@ -1,47 +1,33 @@
 import { useCallback } from "react";
-import toast, { ToastOptions } from "react-hot-toast";
+import { toast } from "sonner";
 import { ToastType } from "@/types";
 
-const toastConfig: Record<ToastType, Partial<ToastOptions>> = {
-  success: {
-    duration: 3000,
-    icon: "✅",
-    style: {
-      background: "#198754",
-      color: "#fff",
-    },
-  },
-  error: {
-    duration: 4000,
-    icon: "❌",
-    style: {
-      background: "#dc3545",
-      color: "#fff",
-    },
-  },
-  warning: {
-    duration: 3500,
-    icon: "⚠️",
-    style: {
-      background: "#ffc107",
-      color: "#000",
-    },
-  },
-  info: {
-    duration: 3000,
-    icon: "ℹ️",
-    style: {
-      background: "#0dcaf0",
-      color: "#000",
-    },
-  },
+const toastDuration: Record<ToastType, number> = {
+  success: 3000,
+  error: 4000,
+  warning: 3500,
+  info: 3000,
 };
 
 export function useToast() {
   const showToast = useCallback(
     (message: string, type: ToastType = "success") => {
-      const config = toastConfig[type];
-      toast(message, config);
+      const duration = toastDuration[type];
+
+      switch (type) {
+        case "success":
+          toast.success(message, { duration });
+          break;
+        case "error":
+          toast.error(message, { duration });
+          break;
+        case "warning":
+          toast.warning(message, { duration });
+          break;
+        case "info":
+          toast.info(message, { duration });
+          break;
+      }
     },
     [],
   );

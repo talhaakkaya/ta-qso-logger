@@ -1,5 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Button, Alert } from "react-bootstrap";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/useToast";
 import { useQSO } from "@/contexts/QSOContext";
 import {
@@ -8,6 +25,7 @@ import {
   saveUserSettings,
   UserSettings,
 } from "@/utils/settingsUtils";
+import { Settings, Trash2, Check, Loader2 } from "lucide-react";
 
 interface SettingsModalProps {
   show: boolean;
@@ -21,8 +39,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
     timezone: TIMEZONE_OPTIONS[0],
     stationCallsign: "",
     defaultTxPower: 5,
+    mode: "simple",
   });
   const [originalTimezone, setOriginalTimezone] = useState<string>("");
+  const [originalMode, setOriginalMode] = useState<"simple" | "advanced">("simple");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -32,18 +52,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
       const currentSettings = getUserSettings();
       setSettings(currentSettings);
       setOriginalTimezone(currentSettings.timezone.value);
+      setOriginalMode(currentSettings.mode);
     }
   }, [show]);
 
   const handleSave = () => {
     try {
       const timezoneChanged = settings.timezone.value !== originalTimezone;
+      const modeChanged = settings.mode !== originalMode;
       saveUserSettings(settings);
       showToast("Ayarlar kaydedildi", "success");
       onHide();
 
-      // Reload page if timezone changed to update all displayed times
-      if (timezoneChanged) {
+      // Reload page if timezone or mode changed to update UI
+      if (timezoneChanged || modeChanged) {
         window.location.reload();
       }
     } catch (error) {
@@ -75,21 +97,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
   };
 
   return (
-    <Modal show={show} onHide={handleClose} size="lg">
-      <Modal.Header closeButton className="bg-dark text-light">
-        <Modal.Title>
-          <i className="bi bi-gear me-2"></i>
-          Ayarlar
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-          <Form.Group className="mb-3">
-            <Form.Label>
-              <i className="bi bi-broadcast me-2"></i>
-              İstasyon Çağrı İşareti
-            </Form.Label>
-            <Form.Control
+    <Dialog open={show} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Settings />
+            Ayarlar
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6 py-4">
+          {/* Station Callsign */}
+          <div className="space-y-2">
+            <Label>İstasyon Çağrı İşareti</Label>
+            <Input
               type="text"
               value={settings.stationCallsign}
               onChange={(e) =>
@@ -101,17 +121,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
               placeholder="TA1ABC"
               maxLength={15}
             />
-            <Form.Text className="text-muted">
-              ADIF dışa aktarımlarında kullanılacak istasyon çağrı işaretiniz.
-            </Form.Text>
-          </Form.Group>
+          </div>
 
-          <Form.Group className="mb-3">
-            <Form.Label>
-              <i className="bi bi-lightning-charge me-2"></i>
-              Varsayılan Güç (W)
-            </Form.Label>
-            <Form.Control
+          {/* Default Power */}
+          <div className="space-y-2">
+            <Label>Varsayılan Güç (W)</Label>
+            <Input
               type="number"
               step="0.1"
               min="0"
@@ -124,117 +139,121 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
               }
               placeholder="5"
             />
-            <Form.Text className="text-muted">
-              Yeni QSO kayıtları için varsayılan verici gücü.
-            </Form.Text>
-          </Form.Group>
+          </div>
 
-          <Form.Group className="mb-3">
-            <Form.Label>
-              <i className="bi bi-globe me-2"></i>
-              Saat Dilimi
-            </Form.Label>
-            <Form.Select
+          {/* User Mode */}
+          <div className="space-y-2">
+            <Label>Kullanım Modu</Label>
+            <RadioGroup
+              value={settings.mode}
+              onValueChange={(value) =>
+                setSettings((prev) => ({ ...prev, mode: value as "simple" | "advanced" }))
+              }
+              className="space-y-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="simple" id="mode-simple" />
+                <Label htmlFor="mode-simple" className="cursor-pointer font-normal">
+                  Basit Mod
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="advanced" id="mode-advanced" />
+                <Label htmlFor="mode-advanced" className="cursor-pointer font-normal">
+                  Gelişmiş Mod
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* Timezone */}
+          <div className="space-y-2">
+            <Label>Saat Dilimi</Label>
+            <Select
               value={settings.timezone.value}
-              onChange={(e) => {
-                const selectedTz = TIMEZONE_OPTIONS.find(
-                  (tz) => tz.value === e.target.value,
-                );
+              onValueChange={(value) => {
+                const selectedTz = TIMEZONE_OPTIONS.find((tz) => tz.value === value);
                 if (selectedTz) {
                   setSettings((prev) => ({ ...prev, timezone: selectedTz }));
                 }
               }}
             >
-              {TIMEZONE_OPTIONS.map((tz) => (
-                <option key={tz.value} value={tz.value}>
-                  {tz.label}
-                </option>
-              ))}
-            </Form.Select>
-            <Form.Text className="text-muted">
-              Tüm kayıtlar UTC olarak saklanır, seçilen saat dilimine göre görüntülenir.
-            </Form.Text>
-          </Form.Group>
-
-          <hr className="my-4" />
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIMEZONE_OPTIONS.map((tz) => (
+                  <SelectItem key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Danger Zone */}
-          <div className="border border-danger rounded p-3">
-            <h6 className="text-danger mb-3">
-              <i className="bi bi-exclamation-triangle me-2"></i>
-              Tehlikeli Bölge
-            </h6>
+          <div className="pt-4 border-t space-y-2">
+            <Label className="text-destructive">Tüm QSO Kayıtlarını Sil</Label>
             {!showDeleteConfirm ? (
-              <>
-                <p className="text-muted small mb-3">
-                  Tüm QSO kayıtlarınızı kalıcı olarak silin. Bu işlem geri alınamaz!
-                </p>
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  onClick={() => setShowDeleteConfirm(true)}
-                >
-                  <i className="bi bi-trash me-1"></i>
-                  Tüm QSO Kayıtlarını Sil
-                </Button>
-              </>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-destructive w-full"
+              >
+                <Trash2 />
+                Tüm Kayıtları Sil
+              </Button>
             ) : (
-              <Alert variant="danger" className="mb-0">
-                <Alert.Heading className="h6">
-                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                  Emin misiniz?
-                </Alert.Heading>
-                <p className="small mb-3">
-                  Bu işlem <strong>tüm QSO kayıtlarınızı</strong> kalıcı olarak silecektir.
-                  Bu işlem geri alınamaz ve verileriniz kurtarılamaz!
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Bu işlem geri alınamaz. Emin misiniz?
                 </p>
-                <div className="d-flex gap-2">
+                <div className="flex gap-2">
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={isDeleting}
+                    className="flex-1"
                   >
                     İptal
                   </Button>
                   <Button
-                    variant="danger"
+                    variant="destructive"
                     size="sm"
                     onClick={handleDeleteAll}
                     disabled={isDeleting}
+                    className="flex-1"
                   >
                     {isDeleting ? (
                       <>
-                        <span
-                          className="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
+                        <Loader2 className="animate-spin" />
                         Siliniyor...
                       </>
                     ) : (
                       <>
-                        <i className="bi bi-trash-fill me-1"></i>
-                        Evet, Tüm Kayıtları Sil
+                        <Trash2 />
+                        Evet, Sil
                       </>
                     )}
                   </Button>
                 </div>
-              </Alert>
+              </div>
             )}
           </div>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          İptal
-        </Button>
-        <Button variant="primary" onClick={handleSave}>
-          <i className="bi bi-check-circle me-1"></i>
-          Kaydet
-        </Button>
-      </Modal.Footer>
-    </Modal>
+        </div>
+        <DialogFooter>
+          <Button variant="secondary" onClick={handleClose}>
+            İptal
+          </Button>
+          <Button onClick={handleSave}>
+            <Check />
+            Kaydet
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

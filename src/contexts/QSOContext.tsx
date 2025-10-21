@@ -11,6 +11,7 @@ import { QSORecord, FilterState, PaginationState } from "@/types";
 import { ImportResult } from "@/types/qso.types";
 import apiService from "@/services/apiService";
 import adifService from "@/services/adifService";
+import csvService from "@/services/csvService";
 import { ROWS_PER_PAGE } from "@/utils/constants";
 import { getCurrentDateTimeInTimezone } from "@/utils/settingsUtils";
 
@@ -37,6 +38,10 @@ interface QSOContextType {
   // Export/Import
   exportToADIF: () => Promise<void>;
   importFromADIF: (file: File) => Promise<ImportResult>;
+  importFromCSV: (
+    parsedData: { headers: string[]; rows: string[][] },
+    columnMapping: Record<string, string>
+  ) => Promise<ImportResult>;
 
   // Filter/Search
   setFilters: (filters: Partial<FilterState>) => void;
@@ -253,6 +258,29 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  const importFromCSV = useCallback(
+    async (
+      parsedData: { headers: string[]; rows: string[][] },
+      columnMapping: Record<string, string>
+    ): Promise<ImportResult> => {
+      try {
+        // Use CSV service for import logic
+        const result = await csvService.importCSVRecords(parsedData, columnMapping);
+
+        // Add imported records to local state
+        if (result.records && result.records.length > 0) {
+          setQSORecords((prev) => [...result.records!, ...prev]);
+        }
+
+        return result;
+      } catch (error) {
+        console.error("Failed to import CSV records:", error);
+        throw error;
+      }
+    },
+    []
+  );
+
   const setFilters = useCallback((newFilters: Partial<FilterState>) => {
     setFiltersState((prev) => ({ ...prev, ...newFilters }));
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
@@ -283,6 +311,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
     updateQSORecordImmediate,
     exportToADIF,
     importFromADIF,
+    importFromCSV,
     setFilters,
     clearFilters,
     setPage,

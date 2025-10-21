@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Nav, Button } from "react-bootstrap";
+import { Button } from "@/components/ui/button";
 import { useQSO } from "@/contexts/QSOContext";
 import { useToast } from "@/hooks/useToast";
 import SettingsModal from "@/components/Modals/SettingsModal";
 import ImportModal from "@/components/Modals/ImportModal";
 import QSOMapModal from "@/components/Modals/QSOMapModal";
+import { getUserMode } from "@/utils/settingsUtils";
+import { Download, Upload, Map, Settings, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   onShowQCodes: () => void;
@@ -17,6 +20,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onShowQCodes }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showQSOMap, setShowQSOMap] = useState(false);
+  const [userMode, setUserMode] = useState<'simple' | 'advanced'>('simple');
+
+  // Load user mode
+  useEffect(() => {
+    setUserMode(getUserMode());
+  }, []);
 
   // Auto-collapse on mobile
   useEffect(() => {
@@ -39,92 +48,133 @@ const Sidebar: React.FC<SidebarProps> = ({ onShowQCodes }) => {
   };
 
   return (
-    <div
-      className="bg-dark text-light position-relative"
-      style={{
-        width: isCollapsed ? "60px" : "250px",
-        transition: "width 0.3s ease",
-      }}
-    >
-      <style>{`
-        .nav-link:hover {
-          background-color: rgba(255, 255, 255, 0.1);
-        }
-      `}</style>
+    <>
+      {/* Mobile Horizontal Navbar (< 768px) */}
+      <div className="md:hidden bg-card border-b">
+        <nav className="flex flex-row flex-nowrap justify-evenly px-2 py-3 overflow-x-auto">
+          <button
+            onClick={handleExport}
+            className="text-foreground px-4 py-2 hover:bg-accent active:bg-accent/80 flex flex-col items-center min-w-[64px] cursor-pointer transition-colors"
+            title="Dışa Aktar"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={() => setShowImport(true)}
+            className="text-foreground px-4 py-2 hover:bg-accent active:bg-accent/80 flex flex-col items-center min-w-[64px] cursor-pointer transition-colors"
+            title="İçe Aktar"
+          >
+            <Upload className="w-5 h-5" />
+          </button>
+
+          {userMode === 'advanced' && (
+            <button
+              onClick={() => setShowQSOMap(true)}
+              className="text-foreground px-4 py-2 hover:bg-accent active:bg-accent/80 flex flex-col items-center min-w-[64px] cursor-pointer transition-colors"
+              title="QSO Haritası"
+            >
+              <Map className="w-5 h-5" />
+            </button>
+          )}
+
+          <button
+            onClick={() => setShowSettings(true)}
+            className="text-foreground px-4 py-2 hover:bg-accent active:bg-accent/80 flex flex-col items-center min-w-[64px] cursor-pointer transition-colors"
+            title="Ayarlar"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={onShowQCodes}
+            className="text-muted-foreground px-4 py-2 hover:bg-accent hover:text-foreground active:bg-accent/80 flex flex-col items-center min-w-[64px] cursor-pointer transition-all"
+            title="Q Kodları"
+          >
+            <HelpCircle className="w-5 h-5" />
+          </button>
+        </nav>
+      </div>
+
+      {/* Desktop Vertical Sidebar (≥ 768px) */}
+      <div
+        className="hidden md:flex flex-col bg-card border-r relative transition-all duration-300 ease-in-out"
+        style={{
+          width: isCollapsed ? "60px" : "250px",
+        }}
+      >
       {/* Toggle Button - hidden on mobile */}
-      <div className="p-2 ps-4 border-bottom border-secondary d-none d-md-flex justify-content-between align-items-center">
+      <div className="p-2 pl-4 border-b hidden md:flex justify-between items-center">
         {!isCollapsed && (
-          <h6 className="mb-0 text-light">
-            <i className="bi bi-gear me-2"></i>
+          <h6 className="mb-0 text-foreground flex items-center gap-2 font-semibold">
+            <Settings className="w-4 h-4" />
             İşlemler
           </h6>
         )}
         <Button
-          variant="outline-secondary"
+          variant="ghost"
           size="sm"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="border-0 text-light"
+          className="border-0"
         >
-          <i
-            className={`bi ${isCollapsed ? "bi-chevron-right" : "bi-chevron-left"}`}
-          ></i>
+          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </Button>
       </div>
 
-      <Nav className="flex-column p-2">
-        <Nav.Link
+      <nav className="flex flex-col p-2">
+        <button
           onClick={handleExport}
-          className="text-light py-2 px-3 mb-1 rounded d-flex align-items-center"
-          style={{ cursor: "pointer" }}
+          className="text-foreground py-2 px-3 mb-1 flex items-center hover:bg-accent cursor-pointer transition-colors"
           title="Dışa Aktar"
         >
-          <i className="bi bi-download"></i>
-          {!isCollapsed && <span className="ms-2">Dışa Aktar</span>}
-        </Nav.Link>
+          <Download className="w-5 h-5" />
+          {!isCollapsed && <span className="ml-2">Dışa Aktar</span>}
+        </button>
 
-        <Nav.Link
+        <button
           onClick={() => setShowImport(true)}
-          className="text-light py-2 px-3 mb-1 rounded d-flex align-items-center"
-          style={{ cursor: "pointer" }}
+          className="text-foreground py-2 px-3 mb-1 flex items-center hover:bg-accent cursor-pointer transition-colors"
           title="İçe Aktar"
         >
-          <i className="bi bi-upload"></i>
-          {!isCollapsed && <span className="ms-2">İçe Aktar</span>}
-        </Nav.Link>
+          <Upload className="w-5 h-5" />
+          {!isCollapsed && <span className="ml-2">İçe Aktar</span>}
+        </button>
 
-        <Nav.Link
-          onClick={() => setShowQSOMap(true)}
-          className="text-light py-2 px-3 mb-1 rounded d-flex align-items-center"
-          style={{ cursor: "pointer" }}
-          title="QSO Haritası"
-        >
-          <i className="bi bi-map"></i>
-          {!isCollapsed && <span className="ms-2">QSO Haritası</span>}
-        </Nav.Link>
+        {userMode === 'advanced' && (
+          <button
+            onClick={() => setShowQSOMap(true)}
+            className="text-foreground py-2 px-3 mb-1 flex items-center hover:bg-accent cursor-pointer transition-colors"
+            title="QSO Haritası"
+          >
+            <Map className="w-5 h-5" />
+            {!isCollapsed && <span className="ml-2">QSO Haritası</span>}
+          </button>
+        )}
 
-        <Nav.Link
+        <button
           onClick={() => setShowSettings(true)}
-          className="text-light py-2 px-3 mb-1 rounded d-flex align-items-center"
-          style={{ cursor: "pointer" }}
+          className="text-foreground py-2 px-3 mb-1 flex items-center hover:bg-accent cursor-pointer transition-colors"
           title="Ayarlar"
         >
-          <i className="bi bi-gear"></i>
-          {!isCollapsed && <span className="ms-2">Ayarlar</span>}
-        </Nav.Link>
+          <Settings className="w-5 h-5" />
+          {!isCollapsed && <span className="ml-2">Ayarlar</span>}
+        </button>
 
-        {!isCollapsed && <hr className="border-secondary my-2" />}
+        {!isCollapsed && <hr className="border-border my-2" />}
 
-        <Nav.Link
+        <button
           onClick={onShowQCodes}
-          className="text-secondary py-2 px-3 mb-1 rounded d-flex align-items-center"
-          style={{ cursor: "pointer" }}
+          className="text-muted-foreground py-2 px-3 mb-1 flex items-center hover:bg-accent hover:text-foreground cursor-pointer transition-all"
           title="Q Kodları"
         >
-          <i className="bi bi-question-circle"></i>
-          {!isCollapsed && <span className="ms-2">Q Kodları</span>}
-        </Nav.Link>
-      </Nav>
+          <HelpCircle className="w-5 h-5" />
+          {!isCollapsed && <span className="ml-2">Q Kodları</span>}
+        </button>
+      </nav>
 
+      </div>
+
+      {/* Modals - shared between mobile and desktop */}
       <SettingsModal
         show={showSettings}
         onHide={() => setShowSettings(false)}
@@ -139,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onShowQCodes }) => {
         show={showQSOMap}
         onHide={() => setShowQSOMap(false)}
       />
-    </div>
+    </>
   );
 };
 

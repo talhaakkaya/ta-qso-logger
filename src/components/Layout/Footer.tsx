@@ -1,69 +1,63 @@
 import React from "react";
-import { Container, Row, Col } from "react-bootstrap";
+import { Radio, Code, Github, Heart } from "lucide-react";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-dark text-light py-4 mt-5" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-      <Container>
-        <Row>
-          <Col md={6} className="text-center text-md-start mb-2 mb-md-0">
-            <p className="small mb-1 text-secondary">
-              <i className="bi bi-broadcast-pin me-2"></i>
+    <footer className="bg-card py-4 mt-5 border-t">
+      <div className="px-4 lg:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="text-center md:text-left mb-2 md:mb-0">
+            <p className="text-sm mb-1 text-muted-foreground">
+              <Radio className="inline w-4 h-4 mr-2" />
               <a
                 href="https://www.qrz.com/db/TA1TLA"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-secondary text-decoration-none hover-opacity"
+                className="text-muted-foreground no-underline hover:text-foreground transition-colors"
               >
                 TA1TLA
               </a>
               &apos;nin QSO Logger&apos;ından ilham alınmıştır
             </p>
-            <p className="small mb-0 text-secondary">
-              <i className="bi bi-code-slash me-2"></i>
+            <p className="text-sm mb-0 text-muted-foreground">
+              <Code className="inline w-4 h-4 mr-2" />
               <a
                 href="https://www.qrz.com/db/TA1VAL"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-secondary text-decoration-none hover-opacity"
+                className="text-muted-foreground no-underline hover:text-foreground transition-colors"
               >
                 TA1VAL
               </a>{" "}
               tarafından geliştirilmektedir
             </p>
-          </Col>
-          <Col md={6} className="text-center text-md-end">
-            <p className="small mb-1 text-secondary">
+          </div>
+          <div className="text-center md:text-right">
+            <p className="text-sm mb-1 text-muted-foreground">
               <a
                 href="https://github.com/talhaakkaya/ta-qso-logger"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-secondary text-decoration-none hover-opacity"
+                className="text-muted-foreground no-underline hover:text-foreground transition-colors"
               >
-                <i className="bi bi-github me-2"></i>
+                <Github className="inline w-4 h-4 mr-2" />
                 GitHub
               </a>
             </p>
-            <p className="small mb-0 text-secondary">
-              <i className="bi bi-heart-fill me-1" style={{ color: '#dc3545' }}></i>
+            <p className="text-sm mb-0 text-muted-foreground">
+              <Heart className="inline w-4 h-4 mr-1 text-red-500 fill-red-500" />
               Open Source - GPL-3.0
             </p>
-          </Col>
-        </Row>
-        <Row className="mt-3">
-          <Col className="text-center">
-            <p className="small mb-0" style={{ color: '#6c757d', fontSize: '0.85rem' }}>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 mt-3">
+          <div className="text-center">
+            <p className="text-sm mb-0 text-muted-foreground" style={{ fontSize: '0.85rem' }}>
               73! İyi QSO&apos;lar!
             </p>
-          </Col>
-        </Row>
-      </Container>
-      <style jsx>{`
-        .hover-opacity:hover {
-          opacity: 0.8;
-          transition: opacity 0.2s ease;
-        }
-      `}</style>
+          </div>
+        </div>
+      </div>
     </footer>
   );
 };

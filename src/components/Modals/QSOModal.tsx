@@ -1,11 +1,32 @@
 import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { Modal, Form, Button, Row, Col, InputGroup, ListGroup, Spinner } from "react-bootstrap";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { QSORecord } from "@/types";
 import { formatDateTimeForInput, getCurrentDateTimeString } from "@/utils/dateUtils";
 import { getDefaultTxPower, getStoredTimezone, formatDateTimeForDisplay } from "@/utils/settingsUtils";
 import { coordinatesToGridSquare, gridSquareToCoordinates } from "@/utils/gridSquareUtils";
 import { useToast } from "@/hooks/useToast";
+import { useUserMode } from "@/hooks/useUserMode";
+import { useLocationSearch } from "@/hooks/useLocationSearch";
+import locationService from "@/services/locationService";
+import { Search, MapPin, Loader2, Check, ExternalLink, Pencil, Plus, Clock } from "lucide-react";
 
 // Dynamically import LeafletMap to avoid SSR issues
 const LeafletMap = dynamic(
@@ -23,15 +44,6 @@ interface QSOModalProps {
   onSave: (data: Omit<QSORecord, "id"> | QSORecord) => Promise<void>;
 }
 
-interface NominatimResult {
-  place_id: number;
-  display_name: string;
-  lat: string;
-  lon: string;
-  type: string;
-  importance: number;
-}
-
 const QSOModal: React.FC<QSOModalProps> = ({
   show,
   onHide,
@@ -39,6 +51,8 @@ const QSOModal: React.FC<QSOModalProps> = ({
   onSave,
 }) => {
   const { showToast } = useToast();
+  const userMode = useUserMode();
+  const locationSearch = useLocationSearch();
 
   const [formData, setFormData] = useState<Omit<QSORecord, "id">>({
     datetime: "",
@@ -56,11 +70,8 @@ const QSOModal: React.FC<QSOModalProps> = ({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Location search state
+  // Location search visibility
   const [showLocationSearch, setShowLocationSearch] = useState(false);
-  const [locationSearchQuery, setLocationSearchQuery] = useState("");
-  const [locationResults, setLocationResults] = useState<NominatimResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
 
   // Map display state
   const [mapCoordinates, setMapCoordinates] = useState<{ lat: number; lon: number } | null>(null);
@@ -144,7 +155,8 @@ const QSOModal: React.FC<QSOModalProps> = ({
     }
 
     // Validate Grid Square (Maidenhead locator) format if provided
-    if (formData.qth && formData.qth.trim()) {
+    // In simple mode, accept free text. In advanced mode, validate grid square format.
+    if (formData.qth && formData.qth.trim() && userMode === 'advanced') {
       const gridSquarePattern = /^[A-R]{2}[0-9]{2}([a-x]{2}([0-9]{2}([a-x]{2})?)?)?$/i;
       if (!gridSquarePattern.test(formData.qth.trim())) {
         newErrors.qth = "Geçersiz grid square formatı (örn: JO01aa)";
@@ -180,8 +192,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
     if (!isSaving) {
       // Reset location search state
       setShowLocationSearch(false);
-      setLocationSearchQuery("");
-      setLocationResults([]);
+      locationSearch.clearResults();
       // Reset map state to ensure clean unmount
       setMapCoordinates(null);
       onHide();
@@ -190,52 +201,17 @@ const QSOModal: React.FC<QSOModalProps> = ({
 
   // Location search handlers
   const handleLocationSearch = async () => {
-    if (!locationSearchQuery.trim()) {
-      showToast("Lütfen bir konum girin", "warning");
-      return;
-    }
-
-    setIsSearching(true);
-    setLocationResults([]);
-
     try {
-      // Nominatim API endpoint
-      const url = new URL("https://nominatim.openstreetmap.org/search");
-      url.searchParams.append("q", locationSearchQuery);
-      url.searchParams.append("format", "json");
-      url.searchParams.append("limit", "10");
-      url.searchParams.append("addressdetails", "1");
-
-      const response = await fetch(url.toString(), {
-        headers: {
-          "User-Agent": "QSO Logger/1.0",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Konum araması başarısız oldu");
-      }
-
-      const results: NominatimResult[] = await response.json();
-
-      if (results.length === 0) {
-        showToast("Konum bulunamadı", "info");
-      }
-
-      setLocationResults(results);
+      await locationSearch.search();
     } catch (error) {
-      console.error("Location search error:", error);
-      showToast("Konum araması sırasında hata oluştu", "error");
-    } finally {
-      setIsSearching(false);
+      showToast((error as Error).message, "warning");
     }
   };
 
-  const handleLocationSelect = (result: NominatimResult) => {
+  const handleLocationSelect = (result: typeof locationSearch.results[0]) => {
     try {
       // Convert coordinates to grid square
-      const lat = parseFloat(result.lat);
-      const lon = parseFloat(result.lon);
+      const { lat, lon } = locationService.getCoordinatesFromResult(result);
       const gridSquare = coordinatesToGridSquare(lat, lon);
 
       // Fill grid square field
@@ -250,8 +226,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
       handleFieldChange("notes", newNotes);
 
       // Clear and close search
-      setLocationSearchQuery("");
-      setLocationResults([]);
+      locationSearch.clearResults();
       setShowLocationSearch(false);
 
       showToast("Grid square güncellendi", "success");
@@ -279,235 +254,206 @@ const QSOModal: React.FC<QSOModalProps> = ({
   }, [showToast]);
 
   return (
-    <Modal show={show} onHide={handleClose} size="lg">
-      <Modal.Header closeButton className="bg-dark text-light">
-        <Modal.Title>
-          <i
-            className={`bi ${isEditMode ? "bi-pencil-square" : "bi-plus-circle"} me-2`}
-          ></i>
-          {isEditMode ? "QSO Düzenle" : "Yeni QSO"}
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Tarih/Saat <span className="text-danger">*</span>
-                </Form.Label>
-                <Form.Control
-                  type="datetime-local"
-                  value={formatDateTimeForInput(formData.datetime)}
-                  onChange={(e) => handleFieldChange("datetime", e.target.value)}
-                  isInvalid={!!errors.datetime}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.datetime}
-                </Form.Control.Feedback>
-                {formData.datetime && (
-                  <Form.Text className="text-muted">
-                    <i className="bi bi-clock me-1"></i>
-                    {getStoredTimezone().label}: {formatDateTimeForDisplay(formData.datetime)}
-                  </Form.Text>
-                )}
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Çağrı İşareti <span className="text-danger">*</span>
-                </Form.Label>
-                <div className="d-flex align-items-center gap-2">
-                  <Form.Control
-                    type="text"
-                    value={formData.callsign}
-                    onChange={(e) =>
-                      handleFieldChange("callsign", e.target.value)
-                    }
-                    onBlur={(e) =>
-                      handleFieldChange("callsign", e.target.value.toUpperCase())
-                    }
-                    placeholder="TA1ABC"
-                    isInvalid={!!errors.callsign}
-                    style={{ flex: 1 }}
-                  />
-                  {formData.callsign && (
-                    <a
-                      href={`https://www.qrz.com/db/${formData.callsign}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-decoration-none"
-                      title="QRZ.com'da görüntüle"
-                    >
-                      <i className="bi bi-box-arrow-up-right"></i>
-                    </a>
-                  )}
-                </div>
-                <Form.Control.Feedback type="invalid">
-                  {errors.callsign}
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={4}>
-              <Form.Group className="mb-3">
-                <Form.Label>İsim</Form.Label>
-                <Form.Control
+    <Dialog open={show} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[800px] max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {isEditMode ? (
+              <>
+                <Pencil className="w-5 h-5" />
+                QSO Düzenle
+              </>
+            ) : (
+              <>
+                <Plus className="w-5 h-5" />
+                Yeni QSO
+              </>
+            )}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>
+                Tarih/Saat <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                type="datetime-local"
+                value={formatDateTimeForInput(formData.datetime)}
+                onChange={(e) => handleFieldChange("datetime", e.target.value)}
+                className={errors.datetime ? "border-destructive" : ""}
+              />
+              {errors.datetime && (
+                <p className="text-sm text-destructive">{errors.datetime}</p>
+              )}
+              {formData.datetime && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  {getStoredTimezone().label}: {formatDateTimeForDisplay(formData.datetime)}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>
+                Çağrı İşareti <span className="text-destructive">*</span>
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => handleFieldChange("name", e.target.value)}
-                  placeholder="Ahmet"
-                />
-              </Form.Group>
-            </Col>
-            <Col md={4}>
-              <Form.Group className="mb-3">
-                <Form.Label>Frekans (MHz)</Form.Label>
-                <Form.Control
-                  type="number"
-                  step="0.001"
-                  value={formData.freq || ""}
+                  value={formData.callsign}
                   onChange={(e) =>
-                    handleFieldChange("freq", parseFloat(e.target.value) || 0)
+                    handleFieldChange("callsign", e.target.value)
                   }
-                  placeholder="439.200"
+                  onBlur={(e) =>
+                    handleFieldChange("callsign", e.target.value.toUpperCase())
+                  }
+                  placeholder="TA1ABC"
+                  className={errors.callsign ? "border-destructive flex-1" : "flex-1"}
                 />
-              </Form.Group>
-            </Col>
-            <Col md={4}>
-              <Form.Group className="mb-3">
-                <Form.Label>Grid Square</Form.Label>
-                <div className="d-flex gap-2">
-                  <Form.Control
-                    type="text"
-                    value={formData.qth}
-                    onChange={(e) => handleFieldChange("qth", e.target.value)}
-                    onBlur={(e) =>
-                      handleFieldChange("qth", e.target.value.toUpperCase())
-                    }
-                    placeholder="JO01aa"
-                    maxLength={10}
-                    isInvalid={!!errors.qth}
-                    className="flex-grow-1"
-                  />
+                {formData.callsign && (
+                  <a
+                    href={`https://www.qrz.com/db/${formData.callsign}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="QRZ.com'da görüntüle"
+                    className="text-primary hover:text-primary/80"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
+              {errors.callsign && (
+                <p className="text-sm text-destructive">{errors.callsign}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-4 space-y-2">
+              <Label>İsim</Label>
+              <Input
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleFieldChange("name", e.target.value)}
+                placeholder="Ahmet"
+              />
+            </div>
+            <div className="md:col-span-4 space-y-2">
+              <Label>Frekans (MHz)</Label>
+              <Input
+                type="number"
+                step="0.001"
+                value={formData.freq || ""}
+                onChange={(e) =>
+                  handleFieldChange("freq", parseFloat(e.target.value) || 0)
+                }
+                placeholder="439.200"
+              />
+            </div>
+            <div className="md:col-span-4 space-y-2">
+              <Label>{userMode === 'simple' ? 'QTH/Konum' : 'Grid Square'}</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  value={formData.qth}
+                  onChange={(e) => handleFieldChange("qth", e.target.value)}
+                  onBlur={(e) =>
+                    handleFieldChange("qth", userMode === 'advanced' ? e.target.value.toUpperCase() : e.target.value)
+                  }
+                  placeholder={userMode === 'simple' ? 'Istanbul, Turkey' : 'JO01aa'}
+                  maxLength={userMode === 'simple' ? 100 : 10}
+                  className={`${errors.qth ? "border-destructive" : ""} flex-grow`}
+                />
+                {userMode === 'advanced' && (
                   <Button
-                    variant="outline-secondary"
+                    variant="outline"
+                    size="icon"
                     onClick={() => setShowLocationSearch(!showLocationSearch)}
                     title="Konum ara"
-                    style={{ minWidth: "40px" }}
                   >
-                    <i className="bi bi-geo-alt"></i>
+                    <MapPin />
                   </Button>
-                </div>
-                <Form.Control.Feedback type="invalid" className="d-block">
-                  {errors.qth}
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-          </Row>
+                )}
+              </div>
+              {errors.qth && (
+                <p className="text-sm text-destructive">{errors.qth}</p>
+              )}
+            </div>
+          </div>
 
-          {/* Collapsible Location Search Panel - Full Width */}
-          {showLocationSearch && (
-            <Row>
-              <Col xs={12}>
-                <div className="mb-3 p-3 border rounded bg-dark">
-                  <small className="text-muted d-block mb-2">
-                    <i className="bi bi-info-circle me-1"></i>
-                    Konum ara ve otomatik grid square doldur
-                  </small>
-                  <InputGroup className="mb-2">
-                    <Form.Control
-                      placeholder="Konum girin (örn: Istanbul Turkey)"
-                      value={locationSearchQuery}
-                      onChange={(e) => setLocationSearchQuery(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleLocationSearch();
-                        }
-                      }}
-                      disabled={isSearching}
-                    />
-                    <Button
-                      variant="primary"
-                      onClick={handleLocationSearch}
-                      disabled={isSearching || !locationSearchQuery.trim()}
-                    >
-                      {isSearching ? (
-                        <Spinner
-                          as="span"
-                          animation="border"
-                          size="sm"
-                          role="status"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <i className="bi bi-search"></i>
-                      )}
-                    </Button>
-                  </InputGroup>
-
-                  {/* Results Dropdown */}
-                  {locationResults.length > 0 && (
-                    <ListGroup className="mt-2" style={{ maxHeight: "200px", overflowY: "auto" }}>
-                      {locationResults.map((result) => (
-                        <ListGroup.Item
-                          key={result.place_id}
-                          action
-                          onClick={() => handleLocationSelect(result)}
-                          className="py-2"
-                          style={{ cursor: "pointer" }}
-                        >
-                          <div className="d-flex align-items-start">
-                            <i className="bi bi-geo-alt-fill text-primary me-2 mt-1"></i>
-                            <div className="flex-grow-1">
-                              <small className="d-block">{result.display_name}</small>
-                              <small className="text-muted">
-                                {result.type} • {parseFloat(result.lat).toFixed(4)}, {parseFloat(result.lon).toFixed(4)}
-                              </small>
-                            </div>
-                          </div>
-                        </ListGroup.Item>
-                      ))}
-                    </ListGroup>
+          {/* Collapsible Location Search Panel - Full Width - Advanced Mode Only */}
+          {userMode === 'advanced' && showLocationSearch && (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Konum ara"
+                  value={locationSearch.query}
+                  onChange={(e) => locationSearch.setQuery(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleLocationSearch();
+                    }
+                  }}
+                  disabled={locationSearch.isSearching}
+                />
+                <Button
+                  onClick={handleLocationSearch}
+                  disabled={locationSearch.isSearching || !locationSearch.query.trim()}
+                >
+                  {locationSearch.isSearching ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <Search />
                   )}
+                </Button>
+              </div>
+
+              {/* Results Dropdown */}
+              {locationSearch.results.length > 0 && (
+                <div className="max-h-[200px] overflow-y-auto border rounded-md">
+                  {locationSearch.results.map((result) => (
+                    <div
+                      key={result.place_id}
+                      onClick={() => handleLocationSelect(result)}
+                      className="p-2 hover:bg-muted/50 cursor-pointer border-b last:border-b-0"
+                    >
+                      <p className="text-sm">{result.display_name}</p>
+                    </div>
+                  ))}
                 </div>
-              </Col>
-            </Row>
+              )}
+            </div>
           )}
 
-          <Row>
-            <Col md={3}>
-              <Form.Group className="mb-3">
-                <Form.Label>Mod</Form.Label>
-                <Form.Select
-                  value={formData.mode}
-                  onChange={(e) => handleFieldChange("mode", e.target.value)}
-                >
-                  <option value="">Seçiniz...</option>
-                  <option value="FM">FM</option>
-                  <option value="SSB">SSB</option>
-                  <option value="USB">USB</option>
-                  <option value="LSB">LSB</option>
-                  <option value="CW">CW</option>
-                  <option value="AM">AM</option>
-                  <option value="DMR">DMR</option>
-                  <option value="D-STAR">D-STAR</option>
-                  <option value="C4FM">C4FM</option>
-                  <option value="FT8">FT8</option>
-                  <option value="FT4">FT4</option>
-                  <option value="PSK31">PSK31</option>
-                  <option value="RTTY">RTTY</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-            <Col md={3}>
-              <Form.Group className="mb-3">
-                <Form.Label>Güç (W)</Form.Label>
-                <Form.Control
+          {userMode === 'advanced' && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>Mod</Label>
+                <Select value={formData.mode || undefined} onValueChange={(value) => handleFieldChange("mode", value || "")}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seçiniz..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FM">FM</SelectItem>
+                    <SelectItem value="SSB">SSB</SelectItem>
+                    <SelectItem value="USB">USB</SelectItem>
+                    <SelectItem value="LSB">LSB</SelectItem>
+                    <SelectItem value="CW">CW</SelectItem>
+                    <SelectItem value="AM">AM</SelectItem>
+                    <SelectItem value="DMR">DMR</SelectItem>
+                    <SelectItem value="D-STAR">D-STAR</SelectItem>
+                    <SelectItem value="C4FM">C4FM</SelectItem>
+                    <SelectItem value="FT8">FT8</SelectItem>
+                    <SelectItem value="FT4">FT4</SelectItem>
+                    <SelectItem value="PSK31">PSK31</SelectItem>
+                    <SelectItem value="RTTY">RTTY</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Güç (W)</Label>
+                <Input
                   type="number"
                   step="0.1"
                   value={formData.txPower || ""}
@@ -516,104 +462,74 @@ const QSOModal: React.FC<QSOModalProps> = ({
                   }
                   placeholder="5"
                 />
-              </Form.Group>
-            </Col>
-            <Col md={3}>
-              <Form.Group className="mb-3">
-                <Form.Label>Gönderilen RST</Form.Label>
-                <Form.Control
+              </div>
+              <div className="space-y-2">
+                <Label>Gönderilen RST</Label>
+                <Input
                   type="text"
                   value={formData.rstSent}
                   onChange={(e) => handleFieldChange("rstSent", e.target.value)}
                   placeholder="59"
                 />
-              </Form.Group>
-            </Col>
-            <Col md={3}>
-              <Form.Group className="mb-3">
-                <Form.Label>Alınan RST</Form.Label>
-                <Form.Control
+              </div>
+              <div className="space-y-2">
+                <Label>Alınan RST</Label>
+                <Input
                   type="text"
                   value={formData.rstReceived}
                   onChange={(e) => handleFieldChange("rstReceived", e.target.value)}
                   placeholder="59"
                 />
-              </Form.Group>
-            </Col>
-          </Row>
+              </div>
+            </div>
+          )}
 
-          <Row>
-            <Col md={12}>
-              <Form.Group className="mb-3">
-                <Form.Label>Notlar</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={formData.notes}
-                  onChange={(e) => handleFieldChange("notes", e.target.value)}
-                  placeholder="Ek notlar..."
+          <div className="space-y-2">
+            <Label>Notlar</Label>
+            <Textarea
+              rows={3}
+              value={formData.notes}
+              onChange={(e) => handleFieldChange("notes", e.target.value)}
+              placeholder="Ek notlar..."
+            />
+          </div>
+
+          {/* Map Display - Show if grid square exists - Advanced Mode Only */}
+          {userMode === 'advanced' && mapCoordinates && show && (
+            <div key={mapKey} className="space-y-2">
+              <Label>Konum Haritası ({formData.qth})</Label>
+              <div key={`map-container-${mapKey}`} className="border rounded-lg overflow-hidden" style={{ height: '200px' }}>
+                <LeafletMap
+                  latitude={mapCoordinates.lat}
+                  longitude={mapCoordinates.lon}
+                  onLocationChange={handleMapLocationChange}
+                  height="200px"
+                  zoom={10}
                 />
-              </Form.Group>
-            </Col>
-          </Row>
-
-          {/* Map Display - Show if grid square exists */}
-          {mapCoordinates && show && (
-            <Row key={mapKey}>
-              <Col xs={12}>
-                <div className="mb-3">
-                  <Form.Label className="d-flex align-items-center gap-2">
-                    <i className="bi bi-map"></i>
-                    Konum Haritası
-                    <small className="text-muted">({formData.qth})</small>
-                  </Form.Label>
-                  <div key={`map-container-${mapKey}`} className="border rounded overflow-hidden" style={{ height: '450px' }}>
-                    <LeafletMap
-                      latitude={mapCoordinates.lat}
-                      longitude={mapCoordinates.lon}
-                      onLocationChange={handleMapLocationChange}
-                      height="450px"
-                      zoom={10}
-                    />
-                  </div>
-                  <div className="p-2 bg-dark text-center">
-                    <small className="text-muted">
-                      <i className="bi bi-geo-alt-fill text-danger me-1"></i>
-                      {mapCoordinates.lat.toFixed(4)}°, {mapCoordinates.lon.toFixed(4)}°
-                      <span className="mx-2">•</span>
-                      <i className="bi bi-cursor-fill me-1"></i>
-                      Haritayı sürükleyerek konumu değiştirebilirsiniz
-                    </small>
-                  </div>
-                </div>
-              </Col>
-            </Row>
+              </div>
+            </div>
           )}
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose} disabled={isSaving}>
-          İptal
-        </Button>
-        <Button variant="primary" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? (
-            <>
-              <span
-                className="spinner-border spinner-border-sm me-2"
-                role="status"
-                aria-hidden="true"
-              ></span>
-              Kaydediliyor...
-            </>
-          ) : (
-            <>
-              <i className="bi bi-check-circle me-1"></i>
-              Kaydet
-            </>
-          )}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+        </div>
+        <DialogFooter>
+          <Button variant="secondary" onClick={handleClose} disabled={isSaving}>
+            İptal
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <Loader2 className="animate-spin" />
+                Kaydediliyor...
+              </>
+            ) : (
+              <>
+                <Check />
+                Kaydet
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

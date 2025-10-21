@@ -1,7 +1,18 @@
 import React, { useState, useRef } from "react";
-import { Modal, Form, Button, Alert } from "react-bootstrap";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/useToast";
 import { useQSO } from "@/contexts/QSOContext";
+import { Upload, Info, CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 interface ImportModalProps {
   show: boolean;
@@ -94,100 +105,95 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
   };
 
   return (
-    <Modal show={show} onHide={handleClose} size="lg">
-      <Modal.Header closeButton className="bg-dark text-light">
-        <Modal.Title>
-          <i className="bi bi-upload me-2"></i>
-          ADIF İçe Aktar
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-          <Form.Group className="mb-3">
-            <Form.Label>
-              <i className="bi bi-file-earmark-text me-2"></i>
-              ADIF Dosyası Seçin
-            </Form.Label>
-            <Form.Control
+    <Dialog open={show} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Upload className="w-5 h-5" />
+            ADIF İçe Aktar
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>ADIF Dosyası Seçin</Label>
+            <Input
               ref={fileInputRef}
               type="file"
               accept=".adi,.adif"
               onChange={handleFileSelect}
               disabled={isImporting}
             />
-            <Form.Text className="text-muted">
+            <p className="text-sm text-muted-foreground">
               Desteklenen formatlar: .adi, .adif (ADIF 3.1.4)
-            </Form.Text>
-          </Form.Group>
+            </p>
+          </div>
 
           {selectedFile && (
-            <Alert variant="info">
-              <i className="bi bi-info-circle me-2"></i>
-              Seçilen dosya: <strong>{selectedFile.name}</strong> (
-              {(selectedFile.size / 1024).toFixed(2)} KB)
+            <Alert>
+              <Info className="w-4 h-4" />
+              <AlertDescription>
+                Seçilen dosya: <strong>{selectedFile.name}</strong> (
+                {(selectedFile.size / 1024).toFixed(2)} KB)
+              </AlertDescription>
             </Alert>
           )}
 
           {importResult && (
-            <Alert variant={importResult.success ? "success" : "danger"}>
-              <div className="mb-2">
-                <strong>
-                  {importResult.success ? "Başarılı!" : "Hata!"}
-                </strong>
-              </div>
-              <div className="mb-1">
-                <i className="bi bi-check-circle me-2"></i>
-                İçe aktarılan: <strong>{importResult.imported}</strong> kayıt
-              </div>
-              {importResult.errors > 0 && (
-                <div className="mb-1">
-                  <i className="bi bi-x-circle me-2"></i>
-                  Hatalı: <strong>{importResult.errors}</strong> kayıt
+            <Alert variant={importResult.success ? "default" : "destructive"}>
+              {importResult.success ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+              <AlertDescription>
+                <div className="space-y-2">
+                  <div className="font-semibold">
+                    {importResult.success ? "Başarılı!" : "Hata!"}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    İçe aktarılan: <strong>{importResult.imported}</strong> kayıt
+                  </div>
+                  {importResult.errors > 0 && (
+                    <div className="flex items-center gap-2">
+                      <XCircle className="w-4 h-4" />
+                      Hatalı: <strong>{importResult.errors}</strong> kayıt
+                    </div>
+                  )}
+                  {importResult.errorMessages && importResult.errorMessages.length > 0 && (
+                    <div className="mt-2">
+                      <div className="text-sm font-semibold mb-1">Hata mesajları:</div>
+                      <ul className="list-disc list-inside text-sm space-y-1">
+                        {importResult.errorMessages.map((msg, idx) => (
+                          <li key={idx}>{msg}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-              )}
-              {importResult.errorMessages && importResult.errorMessages.length > 0 && (
-                <div className="mt-2">
-                  <small>
-                    <strong>Hata mesajları:</strong>
-                    <ul className="mb-0 mt-1">
-                      {importResult.errorMessages.map((msg, idx) => (
-                        <li key={idx}>{msg}</li>
-                      ))}
-                    </ul>
-                  </small>
-                </div>
-              )}
+              </AlertDescription>
             </Alert>
           )}
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose} disabled={isImporting}>
-          {importResult?.success ? "Kapat" : "İptal"}
-        </Button>
-        <Button
-          variant="primary"
-          onClick={handleImport}
-          disabled={!selectedFile || isImporting}
-        >
-          {isImporting ? (
-            <>
-              <span
-                className="spinner-border spinner-border-sm me-2"
-                role="status"
-                aria-hidden="true"
-              ></span>
-              İçe Aktarılıyor...
-            </>
-          ) : (
-            <>
-              <i className="bi bi-upload me-1"></i>
-              İçe Aktar
-            </>
-          )}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+        </div>
+        <DialogFooter>
+          <Button variant="secondary" onClick={handleClose} disabled={isImporting}>
+            {importResult?.success ? "Kapat" : "İptal"}
+          </Button>
+          <Button
+            onClick={handleImport}
+            disabled={!selectedFile || isImporting}
+          >
+            {isImporting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                İçe Aktarılıyor...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 mr-1" />
+                İçe Aktar
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

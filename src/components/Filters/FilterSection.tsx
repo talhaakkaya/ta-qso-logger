@@ -1,6 +1,18 @@
 import React from "react";
-import { Card, Row, Col, Form, Button, InputGroup } from "react-bootstrap";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useQSO } from "@/contexts/QSOContext";
+import { Filter, Search, X, XCircle } from "lucide-react";
 
 const FilterSection: React.FC = () => {
   const { filters, setFilters, clearFilters, qsoRecords } = useQSO();
@@ -30,12 +42,12 @@ const FilterSection: React.FC = () => {
     { value: "12", label: "Aralık" },
   ];
 
-  const handleYearChange = (year: string) => {
-    setFilters({ year });
+  const handleYearChange = (year: string | undefined) => {
+    setFilters({ year: year || "" });
   };
 
-  const handleMonthChange = (month: string) => {
-    setFilters({ month });
+  const handleMonthChange = (month: string | undefined) => {
+    setFilters({ month: month || "" });
   };
 
   const handleSearchChange = (searchTerm: string) => {
@@ -45,114 +57,120 @@ const FilterSection: React.FC = () => {
   const hasActiveFilters = filters.year || filters.month || filters.searchTerm;
 
   return (
-    <Card className="mb-3 border-0 shadow-sm">
-      <Card.Body>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5 className="mb-0">
-            <i className="bi bi-funnel me-2"></i>
+    <Card className="mb-4 border shadow-sm">
+      <CardContent className="pt-6">
+        <div className="flex justify-between items-center mb-4">
+          <h5 className="mb-0 flex items-center gap-2 text-lg font-semibold">
+            <Filter className="w-5 h-5" />
             Filtreler
           </h5>
           {hasActiveFilters && (
             <Button
-              variant="outline-secondary"
+              variant="outline"
               size="sm"
               onClick={clearFilters}
             >
-              <i className="bi bi-x-circle me-1"></i>
+              <XCircle className="w-4 h-4 mr-1" />
               Temizle
             </Button>
           )}
         </div>
 
-        <Row className="g-3">
-          <Col xs={12} md={3}>
-            <Form.Group>
-              <Form.Label className="small text-muted">Yıl</Form.Label>
-              <Form.Select
-                value={filters.year}
-                onChange={(e) => handleYearChange(e.target.value)}
-              >
-                <option value="">Tüm Yıllar</option>
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-3">
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Yıl</Label>
+              <Select value={filters.year || undefined} onValueChange={handleYearChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tüm Yıllar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-          <Col xs={12} md={3}>
-            <Form.Group>
-              <Form.Label className="small text-muted">Ay</Form.Label>
-              <Form.Select
-                value={filters.month}
-                onChange={(e) => handleMonthChange(e.target.value)}
-                disabled={!filters.year}
-              >
-                <option value="">Tüm Aylar</option>
-                {months.map((month) => (
-                  <option key={month.value} value={month.value}>
-                    {month.label}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
+          <div className="md:col-span-3">
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Ay</Label>
+              <Select value={filters.month || undefined} onValueChange={handleMonthChange} disabled={!filters.year}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tüm Aylar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((month) => (
+                    <SelectItem key={month.value} value={month.value}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-          <Col xs={12} md={6}>
-            <Form.Group>
-              <Form.Label className="small text-muted">Genel Arama</Form.Label>
-              <InputGroup>
-                <InputGroup.Text>
-                  <i className="bi bi-search"></i>
-                </InputGroup.Text>
-                <Form.Control
+          <div className="md:col-span-6">
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Genel Arama</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
                   type="text"
                   placeholder="Tüm alanlarda ara..."
                   value={filters.searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-10"
                 />
-              </InputGroup>
-            </Form.Group>
-          </Col>
-        </Row>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {hasActiveFilters && (
-          <div className="mt-3 d-flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             {filters.year && (
-              <span className="badge bg-primary d-flex align-items-center gap-2">
+              <Badge className="flex items-center gap-2 px-3 py-1">
                 Filtre: {filters.year}
                 <button
-                  className="btn-close"
                   onClick={() => setFilters({ year: "" })}
                   aria-label="Yıl filtresini temizle"
-                ></button>
-              </span>
+                  className="hover:bg-white/20 rounded-full p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
             )}
             {filters.month && (
-              <span className="badge bg-primary d-flex align-items-center gap-2">
+              <Badge className="flex items-center gap-2 px-3 py-1">
                 Filtre: {months.find((m) => m.value === filters.month)?.label}
                 <button
-                  className="btn-close"
                   onClick={() => setFilters({ month: "" })}
                   aria-label="Ay filtresini temizle"
-                ></button>
-              </span>
+                  className="hover:bg-white/20 rounded-full p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
             )}
             {filters.searchTerm && (
-              <span className="badge bg-primary d-flex align-items-center gap-2">
+              <Badge className="flex items-center gap-2 px-3 py-1">
                 Arama: {filters.searchTerm}
                 <button
-                  className="btn-close"
                   onClick={() => setFilters({ searchTerm: "" })}
                   aria-label="Aramayı temizle"
-                ></button>
-              </span>
+                  className="hover:bg-white/20 rounded-full p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
             )}
           </div>
         )}
-      </Card.Body>
+      </CardContent>
     </Card>
   );
 };

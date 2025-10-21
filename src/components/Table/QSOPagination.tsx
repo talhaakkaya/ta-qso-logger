@@ -1,6 +1,15 @@
 import React from "react";
-import { Pagination } from "react-bootstrap";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import { useQSO } from "@/contexts/QSOContext";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 
 const QSOPagination: React.FC = () => {
   const { pagination, setPage } = useQSO();
@@ -18,41 +27,61 @@ const QSOPagination: React.FC = () => {
 
     if (start > 1) {
       items.push(
-        <Pagination.First key="first" onClick={() => setPage(1)} />,
-        <Pagination.Prev
-          key="prev"
-          onClick={() => setPage(Math.max(1, currentPage - 1))}
-          disabled={currentPage === 1}
-        />,
+        <PaginationItem key="first">
+          <PaginationLink onClick={() => setPage(1)} className="cursor-pointer">
+            <ChevronsLeft className="w-4 h-4" />
+          </PaginationLink>
+        </PaginationItem>,
+        <PaginationItem key="prev">
+          <PaginationPrevious
+            onClick={() => setPage(Math.max(1, currentPage - 1))}
+            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+          />
+        </PaginationItem>,
       );
       if (start > 2) {
-        items.push(<Pagination.Ellipsis key="ellipsis1" disabled />);
+        items.push(
+          <PaginationItem key="ellipsis1">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
       }
     }
 
     for (let i = start; i <= end; i++) {
       items.push(
-        <Pagination.Item
-          key={i}
-          active={i === currentPage}
-          onClick={() => setPage(i)}
-        >
-          {i}
-        </Pagination.Item>,
+        <PaginationItem key={i}>
+          <PaginationLink
+            onClick={() => setPage(i)}
+            isActive={i === currentPage}
+            className="cursor-pointer"
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>,
       );
     }
 
     if (end < totalPages) {
       if (end < totalPages - 1) {
-        items.push(<Pagination.Ellipsis key="ellipsis2" disabled />);
+        items.push(
+          <PaginationItem key="ellipsis2">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
       }
       items.push(
-        <Pagination.Next
-          key="next"
-          onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage === totalPages}
-        />,
-        <Pagination.Last key="last" onClick={() => setPage(totalPages)} />,
+        <PaginationItem key="next">
+          <PaginationNext
+            onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+          />
+        </PaginationItem>,
+        <PaginationItem key="last">
+          <PaginationLink onClick={() => setPage(totalPages)} className="cursor-pointer">
+            <ChevronsRight className="w-4 h-4" />
+          </PaginationLink>
+        </PaginationItem>,
       );
     }
 
@@ -62,9 +91,11 @@ const QSOPagination: React.FC = () => {
   return (
     <nav
       aria-label="QSO tablosu sayfalama"
-      className="d-flex justify-content-center"
+      className="flex justify-center"
     >
-      <Pagination className="mb-0">{renderPageItems()}</Pagination>
+      <Pagination>
+        <PaginationContent>{renderPageItems()}</PaginationContent>
+      </Pagination>
     </nav>
   );
 };

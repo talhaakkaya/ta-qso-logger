@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { QSOProvider } from "@/contexts/QSOContext";
 import AuthSessionProvider from "@/components/Providers/SessionProvider";
+import { ThemeProvider } from "@/components/Providers/ThemeProvider";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -63,11 +64,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" data-bs-theme="dark">
-      <body>
-        <AuthSessionProvider>
-          <QSOProvider>{children}</QSOProvider>
-        </AuthSessionProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-background text-foreground">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={true}
+          storageKey="qso-logger-theme"
+          disableTransitionOnChange
+        >
+          <AuthSessionProvider>
+            <QSOProvider>{children}</QSOProvider>
+          </AuthSessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

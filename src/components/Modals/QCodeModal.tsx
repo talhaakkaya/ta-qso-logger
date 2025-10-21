@@ -1,5 +1,21 @@
 import React, { useState, useMemo } from "react";
-import { Modal, Table, Form, InputGroup } from "react-bootstrap";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search, HelpCircle } from "lucide-react";
 
 interface QCodeModalProps {
   show: boolean;
@@ -68,46 +84,48 @@ const QCodeModal: React.FC<QCodeModalProps> = ({ show, onHide }) => {
   }, [searchTerm]);
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" scrollable>
-      <Modal.Header closeButton className="bg-dark text-light">
-        <Modal.Title>
-          <i className="bi bi-question-circle me-2"></i>Q Kodları Referansı
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form.Group className="mb-3">
-          <InputGroup>
-            <InputGroup.Text>
-              <i className="bi bi-search"></i>
-            </InputGroup.Text>
-            <Form.Control
+    <Dialog open={show} onOpenChange={onHide}>
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <HelpCircle />
+            Q Kodları Referansı
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+            <Input
               type="text"
               placeholder="Q kodu veya anlamında ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
             />
-          </InputGroup>
-        </Form.Group>
-        <Table hover responsive>
-          <thead className="table-dark sticky-top">
-            <tr>
-              <th style={{ width: "100px" }}>Q Kodu</th>
-              <th>Anlamı</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredQCodes.map((qCode) => (
-              <tr key={qCode.code}>
-                <td>
-                  <span className="badge bg-primary">{qCode.code}</span>
-                </td>
-                <td>{qCode.meaning}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      </Modal.Body>
-    </Modal>
+          </div>
+          <ScrollArea className="h-[400px]">
+            <Table>
+              <TableHeader className="sticky top-0">
+                <TableRow>
+                  <TableHead className="w-[100px]">Q Kodu</TableHead>
+                  <TableHead>Anlamı</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredQCodes.map((qCode) => (
+                  <TableRow key={qCode.code}>
+                    <TableCell>
+                      <span className="font-semibold">{qCode.code}</span>
+                    </TableCell>
+                    <TableCell>{qCode.meaning}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

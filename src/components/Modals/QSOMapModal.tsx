@@ -2,8 +2,15 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { Modal } from 'react-bootstrap';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useQSO } from '@/contexts/QSOContext';
+import { Map, MapPin } from 'lucide-react';
 
 // Dynamically import QSOWorldMap to avoid SSR issues
 const QSOWorldMap = dynamic(
@@ -28,57 +35,61 @@ const QSOMapModal: React.FC<QSOMapModalProps> = ({ show, onHide }) => {
   );
 
   return (
-    <Modal show={show} onHide={onHide} size="xl" fullscreen="lg-down">
-      <Modal.Header closeButton className="bg-dark text-light">
-        <Modal.Title>
-          <i className="bi bi-map me-2"></i>
-          QSO Haritası
-          <small className="ms-2 text-muted">
-            ({recordsWithLocation.length} konum)
-          </small>
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body className="p-0" style={{ height: '80vh' }}>
-        {recordsWithLocation.length === 0 ? (
-          <div className="d-flex align-items-center justify-content-center h-100">
-            <div className="text-center text-muted">
-              <i className="bi bi-geo-alt" style={{ fontSize: '3rem' }}></i>
-              <p className="mt-3">Grid square bilgisi olan QSO kaydı bulunmuyor</p>
+    <Dialog open={show} onOpenChange={onHide}>
+      <DialogContent className="sm:max-w-[900px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Map className="w-5 h-5" />
+            QSO Haritası
+            <span className="ml-2 text-sm text-muted-foreground font-normal">
+              ({recordsWithLocation.length} konum)
+            </span>
+          </DialogTitle>
+        </DialogHeader>
+        <div>
+          {recordsWithLocation.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center text-muted-foreground">
+                <MapPin className="w-12 h-12 mx-auto mb-3" />
+                <p className="mt-3">Grid square bilgisi olan QSO kaydı bulunmuyor</p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ height: '400px' }}>
+              <QSOWorldMap qsoRecords={qsoRecords} height="100%" />
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <div className="flex gap-2 md:gap-3 w-full justify-center flex-wrap">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-600"></div>
+              <small>FM</small>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+              <small>SSB</small>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-green-600"></div>
+              <small>Digital (FT8/DMR/etc)</small>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <small>CW</small>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+              <small>AM</small>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+              <small>Other</small>
             </div>
           </div>
-        ) : (
-          <QSOWorldMap qsoRecords={qsoRecords} height="100%" />
-        )}
-      </Modal.Body>
-      <Modal.Footer className="bg-dark">
-        <div className="d-flex gap-2 gap-md-3 w-100 justify-content-center flex-wrap">
-          <div className="d-flex align-items-center gap-2">
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#dc3545' }}></div>
-            <small>FM</small>
-          </div>
-          <div className="d-flex align-items-center gap-2">
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#0d6efd' }}></div>
-            <small>SSB</small>
-          </div>
-          <div className="d-flex align-items-center gap-2">
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#198754' }}></div>
-            <small>Digital (FT8/DMR/etc)</small>
-          </div>
-          <div className="d-flex align-items-center gap-2">
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffc107' }}></div>
-            <small>CW</small>
-          </div>
-          <div className="d-flex align-items-center gap-2">
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#fd7e14' }}></div>
-            <small>AM</small>
-          </div>
-          <div className="d-flex align-items-center gap-2">
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#6c757d' }}></div>
-            <small>Other</small>
-          </div>
-        </div>
-      </Modal.Footer>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

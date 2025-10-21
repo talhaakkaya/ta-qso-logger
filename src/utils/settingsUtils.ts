@@ -1,6 +1,9 @@
 const TIMEZONE_KEY = "qso-logger-timezone";
 const STATION_CALLSIGN_KEY = "qso-logger-station-callsign";
 const DEFAULT_TX_POWER_KEY = "qso-logger-default-tx-power";
+const MODE_KEY = "qso-logger-mode";
+
+export type UserMode = 'simple' | 'advanced';
 
 export interface TimezoneOption {
   value: string;
@@ -12,6 +15,7 @@ export interface UserSettings {
   timezone: TimezoneOption;
   stationCallsign: string;
   defaultTxPower: number;
+  mode: UserMode;
 }
 
 export const TIMEZONE_OPTIONS: TimezoneOption[] = [
@@ -126,6 +130,47 @@ export const saveDefaultTxPower = (power: number): void => {
 };
 
 /**
+ * Get the stored user mode from localStorage
+ * Returns 'simple' if not set (beginner-friendly default)
+ */
+export const getUserMode = (): UserMode => {
+  if (typeof window === "undefined") {
+    return "simple"; // Default to simple mode for SSR
+  }
+
+  const stored = localStorage.getItem(MODE_KEY);
+  if (stored === "advanced" || stored === "simple") {
+    return stored;
+  }
+
+  // Default to simple mode for new users
+  return "simple";
+};
+
+/**
+ * Save user mode to localStorage
+ */
+export const saveUserMode = (mode: UserMode): void => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(MODE_KEY, mode);
+  }
+};
+
+/**
+ * Check if user is in simple mode
+ */
+export const isSimpleMode = (): boolean => {
+  return getUserMode() === "simple";
+};
+
+/**
+ * Check if user is in advanced mode
+ */
+export const isAdvancedMode = (): boolean => {
+  return getUserMode() === "advanced";
+};
+
+/**
  * Get all user settings
  */
 export const getUserSettings = (): UserSettings => {
@@ -133,6 +178,7 @@ export const getUserSettings = (): UserSettings => {
     timezone: getStoredTimezone(),
     stationCallsign: getStationCallsign(),
     defaultTxPower: getDefaultTxPower(),
+    mode: getUserMode(),
   };
 };
 
@@ -148,6 +194,9 @@ export const saveUserSettings = (settings: Partial<UserSettings>): void => {
   }
   if (settings.defaultTxPower !== undefined) {
     saveDefaultTxPower(settings.defaultTxPower);
+  }
+  if (settings.mode !== undefined) {
+    saveUserMode(settings.mode);
   }
 };
 
