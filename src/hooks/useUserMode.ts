@@ -15,10 +15,14 @@ type UserMode = "simple" | "advanced";
  */
 export function useUserMode(): UserMode {
   const [userMode, setUserMode] = useState<UserMode>("simple");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setUserMode(getUserMode());
   }, []);
 
-  return userMode;
+  // Return simple mode during SSR/initial render to prevent hydration mismatch
+  // After mount, return the actual user mode from localStorage
+  return mounted ? userMode : "simple";
 }

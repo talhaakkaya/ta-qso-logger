@@ -173,8 +173,17 @@ const QSOWorldMap: React.FC<QSOWorldMapProps> = ({
       map.fitBounds(bounds, { padding: [50, 50] });
     }
 
+    // FIX: Force map to recalculate size after a brief delay
+    // This ensures the map renders correctly when inside modals
+    const resizeTimeout = setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 100);
+
     // Cleanup function
     return () => {
+      clearTimeout(resizeTimeout);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;

@@ -96,6 +96,14 @@ const QSOModal: React.FC<QSOModalProps> = ({
           qth: record.qth,
           notes: record.notes,
         });
+
+        // Set map coordinates immediately if grid square exists
+        if (record.qth && record.qth.trim().length >= 4) {
+          const coords = gridSquareToCoordinates(record.qth);
+          setMapCoordinates(coords);
+        } else {
+          setMapCoordinates(null);
+        }
       } else {
         // Add mode - set defaults in UTC
         const currentDateTime = getCurrentDateTimeString();
@@ -111,10 +119,14 @@ const QSOModal: React.FC<QSOModalProps> = ({
           qth: "",
           notes: "",
         });
+        setMapCoordinates(null);
       }
       setErrors({});
       // Set unique map key to force new map instance when modal opens
       setMapKey(`map-${record?.id || Date.now()}`);
+    } else {
+      // Reset map coordinates when modal closes
+      setMapCoordinates(null);
     }
   }, [show, record]);
 

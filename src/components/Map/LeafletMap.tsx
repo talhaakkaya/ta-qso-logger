@@ -65,8 +65,17 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
       }
     });
 
+    // FIX: Force map to recalculate size after a brief delay
+    // This ensures the map renders correctly when inside modals
+    const resizeTimeout = setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 100);
+
     // Cleanup function - properly destroy map instance
     return () => {
+      clearTimeout(resizeTimeout);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
