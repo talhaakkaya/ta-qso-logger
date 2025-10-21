@@ -15,10 +15,17 @@ export async function GET() {
     const uniqueUsers = await QSO.distinct("userId");
     const totalUsers = uniqueUsers.length;
 
-    return NextResponse.json({
-      totalUsers,
-      totalQSOs,
-    });
+    return NextResponse.json(
+      {
+        totalUsers,
+        totalQSOs,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (error) {
     console.error("Error fetching stats:", error);
     return NextResponse.json(
