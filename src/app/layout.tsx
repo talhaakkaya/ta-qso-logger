@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { QSOProvider } from "@/contexts/QSOContext";
 import AuthSessionProvider from "@/components/Providers/SessionProvider";
 import "@/styles/globals.css";
@@ -45,15 +45,16 @@ export const metadata: Metadata = {
     apple: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
   manifest: "/site.webmanifest",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#1a1a2e" },
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
   ],
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-  },
 };
 
 export default function RootLayout({
