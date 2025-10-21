@@ -41,8 +41,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
     defaultTxPower: 5,
     mode: "simple",
   });
-  const [originalTimezone, setOriginalTimezone] = useState<string>("");
-  const [originalMode, setOriginalMode] = useState<"simple" | "advanced">("simple");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -51,23 +49,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
     if (show) {
       const currentSettings = getUserSettings();
       setSettings(currentSettings);
-      setOriginalTimezone(currentSettings.timezone.value);
-      setOriginalMode(currentSettings.mode);
     }
   }, [show]);
 
   const handleSave = () => {
     try {
-      const timezoneChanged = settings.timezone.value !== originalTimezone;
-      const modeChanged = settings.mode !== originalMode;
       saveUserSettings(settings);
       showToast("Ayarlar kaydedildi", "success");
       onHide();
 
-      // Reload page if timezone or mode changed to update UI
-      if (timezoneChanged || modeChanged) {
-        window.location.reload();
-      }
+      // Always reload page to update UI
+      window.location.reload();
     } catch (error) {
       console.error("Failed to save settings:", error);
       showToast("Ayarlar kaydedilirken hata oluştu", "error");
