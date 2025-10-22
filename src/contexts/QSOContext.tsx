@@ -79,14 +79,12 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
   // Load initial data from API only when authenticated
   useEffect(() => {
     const loadInitialData = async () => {
-      // Don't load data if not authenticated
-      if (status === "loading") {
-        return; // Still determining auth status
-      }
-
-      if (status === "unauthenticated" || !session) {
-        setIsLoading(false);
-        return; // No session, don't fetch data
+      // Only fetch data when authenticated
+      if (status !== "authenticated") {
+        if (status === "unauthenticated") {
+          setIsLoading(false);
+        }
+        return;
       }
 
       // User is authenticated, fetch data

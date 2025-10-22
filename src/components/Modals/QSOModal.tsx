@@ -82,8 +82,10 @@ const QSOModal: React.FC<QSOModalProps> = ({
 
   const isEditMode = record !== null;
 
-  // Check if QRZ API is configured
+  // Check if QRZ API is configured (only when modal opens)
   useEffect(() => {
+    if (!show) return;
+
     const checkQRZConfig = async () => {
       try {
         const config = await apiService.checkQRZConfig();
@@ -94,7 +96,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
       }
     };
     checkQRZConfig();
-  }, []);
+  }, [show]);
 
   // Reset form when modal opens/closes or record changes
   useEffect(() => {
