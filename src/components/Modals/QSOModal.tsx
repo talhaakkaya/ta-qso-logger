@@ -26,7 +26,8 @@ import { useToast } from "@/hooks/useToast";
 import { useUserMode } from "@/hooks/useUserMode";
 import { useLocationSearch } from "@/hooks/useLocationSearch";
 import locationService from "@/services/locationService";
-import { Search, MapPin, Loader2, Check, ExternalLink, Pencil, Plus, Clock } from "lucide-react";
+import apiService from "@/services/apiService";
+import { Search, MapPin, Loader2, Check, Pencil, Plus, Clock } from "lucide-react";
 
 // Dynamically import LeafletMap to avoid SSR issues
 const LeafletMap = dynamic(
@@ -69,6 +70,8 @@ const QSOModal: React.FC<QSOModalProps> = ({
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isQRZLookupLoading, setIsQRZLookupLoading] = useState(false);
+  const [isQRZEnabled, setIsQRZEnabled] = useState(false);
 
   // Location search visibility
   const [showLocationSearch, setShowLocationSearch] = useState(false);
@@ -78,6 +81,20 @@ const QSOModal: React.FC<QSOModalProps> = ({
   const [mapKey, setMapKey] = useState<string>('');
 
   const isEditMode = record !== null;
+
+  // Check if QRZ API is configured
+  useEffect(() => {
+    const checkQRZConfig = async () => {
+      try {
+        const config = await apiService.checkQRZConfig();
+        setIsQRZEnabled(config.enabled);
+      } catch (error) {
+        console.error("Failed to check QRZ config:", error);
+        setIsQRZEnabled(false);
+      }
+    };
+    checkQRZConfig();
+  }, []);
 
   // Reset form when modal opens/closes or record changes
   useEffect(() => {
@@ -265,6 +282,90 @@ const QSOModal: React.FC<QSOModalProps> = ({
     }
   }, [showToast]);
 
+  // Handle QRZ API lookup
+  const handleQRZLookup = async () => {
+    if (!formData.callsign || !formData.callsign.trim()) {
+      showToast("Lütfen önce çağrı işareti girin", "warning");
+      return;
+    }
+
+    setIsQRZLookupLoading(true);
+    try {
+      const result = await apiService.lookupCallsign(formData.callsign);
+
+      if (!result.success || !result.data) {
+        showToast("Çağrı işareti bulunamadı", "error");
+        return;
+      }
+
+      const qrzData = result.data;
+
+      // Update name if available
+      if (qrzData.name) {
+        handleFieldChange("name", qrzData.name);
+      }
+
+      // Handle QTH field based on user mode
+      if (userMode === "advanced") {
+        // Advanced mode: Convert lat/lon to grid square, fallback to grid_square field
+        if (qrzData.latitude && qrzData.longitude) {
+          try {
+            // Parse latitude and longitude strings (e.g., "41.038702 (41° 2' 19'' N)")
+            const latMatch = qrzData.latitude.match(/^(-?\d+\.?\d*)/);
+            const lonMatch = qrzData.longitude.match(/^(-?\d+\.?\d*)/);
+
+            if (latMatch && lonMatch) {
+              const lat = parseFloat(latMatch[1]);
+              const lon = parseFloat(lonMatch[1]);
+              const gridSquare = coordinatesToGridSquare(lat, lon);
+              handleFieldChange("qth", gridSquare);
+            }
+          } catch (error) {
+            console.error("Error converting lat/lon to grid square:", error);
+            // Fallback to grid_square field if conversion fails
+            if (qrzData.grid_square) {
+              handleFieldChange("qth", qrzData.grid_square);
+            }
+          }
+        } else if (qrzData.grid_square) {
+          handleFieldChange("qth", qrzData.grid_square);
+        }
+      } else {
+        // Simple mode: Use address field only
+        if (qrzData.address) {
+          handleFieldChange("qth", qrzData.address);
+        }
+      }
+
+      showToast("QRZ verisi yüklendi", "success");
+    } catch (error: any) {
+      console.error("QRZ lookup error:", error);
+
+      // Handle different error status codes with Turkish messages
+      let errorMessage = "QRZ sorgulaması başarısız";
+
+      if (error.status === 404) {
+        errorMessage = "Çağrı işareti bulunamadı";
+      } else if (error.status === 401) {
+        errorMessage = "Oturum süreniz dolmuş";
+      } else if (error.status === 429) {
+        errorMessage = "Çok fazla istek";
+      } else if (error.status === 500) {
+        errorMessage = "Sunucu hatası";
+      } else if (error.status === 503) {
+        errorMessage = "QRZ API servisi kullanılamıyor";
+      } else if (error.message && error.message.includes("QRZ API is not configured")) {
+        errorMessage = "QRZ API yapılandırılmamış";
+      } else if (error.message && !error.message.includes("API request failed")) {
+        errorMessage = error.message;
+      }
+
+      showToast(errorMessage, "error");
+    } finally {
+      setIsQRZLookupLoading(false);
+    }
+  };
+
   return (
     <Dialog open={show} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[800px] max-h-[85vh] overflow-y-auto">
@@ -322,16 +423,20 @@ const QSOModal: React.FC<QSOModalProps> = ({
                   placeholder="TA1ABC"
                   className={errors.callsign ? "border-destructive flex-1" : "flex-1"}
                 />
-                {formData.callsign && (
-                  <a
-                    href={`https://www.qrz.com/db/${formData.callsign}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="QRZ.com'da görüntüle"
-                    className="text-primary hover:text-primary/80"
+                {formData.callsign && isQRZEnabled && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleQRZLookup}
+                    disabled={isQRZLookupLoading || !formData.callsign.trim()}
+                    title="QRZ'den bilgi getir"
                   >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
+                    {isQRZLookupLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4" />
+                    )}
+                  </Button>
                 )}
               </div>
               {errors.callsign && (

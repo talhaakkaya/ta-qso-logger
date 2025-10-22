@@ -1,25 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { QSOProvider } from "@/contexts/QSOContext";
 import AuthSessionProvider from "@/components/Providers/SessionProvider";
 import { ThemeProvider } from "@/components/Providers/ThemeProvider";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "TA QSO Logger",
+    default: "TA QSO Logger - Amatör Radyo QSO Logger",
     template: "%s | TA QSO Logger",
   },
-  description:
-    "Web-based QSO logger for amateur radio operators. Track contacts, import/export ADIF files, view interactive maps, and manage your ham radio logbook online.",
+  description: "ADIF desteği ile amatör radyo QSO logger",
   keywords: [
-    "amateur radio",
-    "ham radio",
+    "amatör radyo",
     "QSO logger",
     "ADIF",
-    "contact log",
+    "telsiz",
+    "iletişim kaydı",
+    "ham radio",
+    "amateur radio",
     "radio logbook",
-    "Maidenhead grid",
-    "ham radio software",
   ],
   authors: [{ name: "TA1VAL" }],
   creator: "TA1VAL",
@@ -27,16 +25,18 @@ export const metadata: Metadata = {
     type: "website",
     locale: "tr_TR",
     url: "https://qso-logger.example.com",
-    title: "TA QSO Logger",
-    description:
-      "Web-based QSO logger for amateur radio operators with ADIF support and interactive maps.",
+    title: "TA QSO Logger - Amatör Radyo QSO Logger",
+    description: "ADIF desteği ile amatör radyo QSO logger",
     siteName: "TA QSO Logger",
   },
   twitter: {
     card: "summary",
-    title: "TA QSO Logger",
-    description:
-      "Track your amateur radio contacts with ADIF support and interactive world maps.",
+    title: "TA QSO Logger - Amatör Radyo QSO Logger",
+    description: "ADIF desteği ile amatör radyo QSO logger",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
   icons: {
     icon: [
@@ -64,7 +64,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="tr" suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
@@ -73,9 +73,7 @@ export default function RootLayout({
           storageKey="qso-logger-theme"
           disableTransitionOnChange
         >
-          <AuthSessionProvider>
-            <QSOProvider>{children}</QSOProvider>
-          </AuthSessionProvider>
+          <AuthSessionProvider>{children}</AuthSessionProvider>
         </ThemeProvider>
       </body>
     </html>

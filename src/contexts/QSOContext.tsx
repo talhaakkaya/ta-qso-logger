@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
+import { useSession } from "next-auth/react";
 import { QSORecord, FilterState, PaginationState } from "@/types";
 import { ImportResult } from "@/types/qso.types";
 import apiService from "@/services/apiService";
@@ -60,6 +61,7 @@ const QSOContext = createContext<QSOContextType | undefined>(undefined);
 export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const { data: session, status } = useSession();
   const [qsoRecords, setQSORecords] = useState<QSORecord[]>([]);
   const [filters, setFiltersState] = useState<FilterState>({
     year: "",
@@ -74,9 +76,20 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
   const [newRecordId, setNewRecordId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load initial data from API
+  // Load initial data from API only when authenticated
   useEffect(() => {
     const loadInitialData = async () => {
+      // Don't load data if not authenticated
+      if (status === "loading") {
+        return; // Still determining auth status
+      }
+
+      if (status === "unauthenticated" || !session) {
+        setIsLoading(false);
+        return; // No session, don't fetch data
+      }
+
+      // User is authenticated, fetch data
       try {
         const records = await apiService.getQSORecords();
         setQSORecords(records);
@@ -88,7 +101,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     loadInitialData();
-  }, []);
+  }, [status]);
 
   // Calculate filtered records
   const getFilteredRecords = useCallback((): QSORecord[] => {

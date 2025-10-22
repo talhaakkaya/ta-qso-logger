@@ -1,5 +1,6 @@
 import { QSORecord } from "@/types";
 import { ImportResult } from "@/types/qso.types";
+import { QRZLookupResult } from "@/types/qrz.types";
 
 class ApiService {
   private async request<T>(
@@ -16,7 +17,10 @@ class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      const error: any = new Error(errorData.error || `API request failed: ${response.statusText}`);
+      error.status = response.status;
+      throw error;
     }
 
     return response.json();
@@ -81,6 +85,16 @@ class ApiService {
     }
 
     return await response.json();
+  }
+
+  // QRZ API
+
+  async checkQRZConfig(): Promise<{ enabled: boolean }> {
+    return await this.request<{ enabled: boolean }>(`/qrz/config`);
+  }
+
+  async lookupCallsign(callsign: string): Promise<QRZLookupResult> {
+    return await this.request<QRZLookupResult>(`/qrz/${callsign}`);
   }
 }
 
