@@ -32,8 +32,8 @@ export function useModal<T = any>(initialData: T | null = null): UseModalReturn<
 
   const close = useCallback(() => {
     setShow(false);
-    // Optionally clear data on close
-    // setData(null);
+    // Clear data on close to prevent stale data in next open
+    setData(null);
   }, []);
 
   return {
