@@ -19,6 +19,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/useToast";
 import { useQSO } from "@/contexts/QSOContext";
+import { useProfile } from "@/hooks/useQSOQueries";
 import {
   TIMEZONE_OPTIONS,
   getUserSettings,
@@ -35,6 +36,7 @@ interface SettingsModalProps {
 const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
   const { showToast } = useToast();
   const { deleteAllQSORecords, loadUserProfile } = useQSO();
+  const { data: profileData } = useProfile();
   const [settings, setSettings] = useState<UserSettings>({
     timezone: TIMEZONE_OPTIONS[0],
     stationCallsign: "",
@@ -49,35 +51,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
   // Load current settings when modal opens
   useEffect(() => {
     if (show) {
-      loadSettings();
-    }
-  }, [show]);
-
-  const loadSettings = async () => {
-    setIsLoading(true);
-    try {
       // Load localStorage settings
       const currentSettings = getUserSettings();
 
-      // Fetch profile from database to get callsign and grid square
-      const response = await fetch("/api/profile");
-      if (response.ok) {
-        const profile = await response.json();
-        // Override localStorage values with database values
-        currentSettings.stationCallsign = profile.callsign || "";
-        currentSettings.gridSquare = profile.gridSquare || "";
+      // Override with cached profile data
+      if (profileData) {
+        currentSettings.stationCallsign = profileData.callsign || "";
+        currentSettings.gridSquare = profileData.gridSquare || "";
       }
 
       setSettings(currentSettings);
-    } catch (error) {
-      console.error("Failed to load settings:", error);
-      // Fall back to localStorage only
-      const currentSettings = getUserSettings();
-      setSettings(currentSettings);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [show, profileData]);
 
   const handleSave = async () => {
     setIsLoading(true);

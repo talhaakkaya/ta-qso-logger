@@ -10,10 +10,27 @@ export async function GET() {
     // Get total number of profiles (users)
     const totalUsers = await prisma.profile.count();
 
+    // Get top 10 most used frequencies
+    const topFrequencies = await prisma.$queryRaw<{ freq: string; count: bigint }[]>`
+      SELECT freq::text, COUNT(*) as count
+      FROM qsos
+      WHERE deleted_at IS NULL AND freq IS NOT NULL
+      GROUP BY freq
+      ORDER BY count DESC
+      LIMIT 10
+    `;
+
+    // Convert bigint to number for JSON serialization
+    const formattedFrequencies = topFrequencies.map(item => ({
+      freq: item.freq,
+      count: Number(item.count)
+    }));
+
     return NextResponse.json(
       {
         totalUsers,
         totalQSOs,
+        topFrequencies: formattedFrequencies,
       },
       {
         headers: {

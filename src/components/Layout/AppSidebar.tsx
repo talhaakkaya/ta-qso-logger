@@ -15,6 +15,7 @@ import {
   HelpCircle,
   BookOpen,
   Plus,
+  BarChart3,
 } from "lucide-react";
 import {
   Sidebar,
@@ -46,6 +47,7 @@ interface AppSidebarProps {
   onShowQSOMap: () => void;
   onShowQCodes: () => void;
   onShowCreateLogbook: () => void;
+  onShowStats: () => void;
 }
 
 export function AppSidebar({
@@ -55,6 +57,7 @@ export function AppSidebar({
   onShowQSOMap,
   onShowQCodes,
   onShowCreateLogbook,
+  onShowStats,
 }: AppSidebarProps) {
   const { qsoRecords, exportToADIF, logbooks, currentLogbook, setCurrentLogbook } = useQSO();
   const { showToast } = useToast();
@@ -165,6 +168,12 @@ export function AppSidebar({
                 <SidebarMenuButton onClick={onShowSettings}>
                   <Settings />
                   <span>Ayarlar</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onShowStats}>
+                  <BarChart3 />
+                  <span>İstatistikler</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
