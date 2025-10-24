@@ -19,7 +19,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/useToast";
 import { useQSO } from "@/contexts/QSOContext";
-import { useProfile } from "@/hooks/useQSOQueries";
+import { useProfile, useUpdateProfile } from "@/hooks/useQSOQueries";
 import {
   TIMEZONE_OPTIONS,
   getUserSettings,
@@ -35,8 +35,9 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
   const { showToast } = useToast();
-  const { deleteAllQSORecords, loadUserProfile } = useQSO();
+  const { deleteAllQSORecords } = useQSO();
   const { data: profileData } = useProfile();
+  const updateProfileMutation = useUpdateProfile();
   const [settings, setSettings] = useState<UserSettings>({
     timezone: TIMEZONE_OPTIONS[0],
     stationCallsign: "",
@@ -70,22 +71,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
       // Save to localStorage
       saveUserSettings(settings);
 
-      // Save callsign and grid square to database
-      const response = await fetch("/api/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          callsign: settings.stationCallsign,
-          gridSquare: settings.gridSquare,
-        }),
+      // Save callsign and grid square to database using mutation
+      await updateProfileMutation.mutateAsync({
+        callsign: settings.stationCallsign,
+        gridSquare: settings.gridSquare,
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to update profile");
-      }
-
-      // Reload user profile in context
-      await loadUserProfile();
 
       showToast("Ayarlar kaydedildi", "success");
       onHide();
