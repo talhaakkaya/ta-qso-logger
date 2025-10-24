@@ -22,6 +22,10 @@ interface QSOContextType {
   filteredRecords: QSORecord[];
   isLoading: boolean;
 
+  // User Profile
+  stationGridSquare: string;
+  loadUserProfile: () => Promise<void>;
+
   // Logbook
   logbooks: Logbook[];
   currentLogbook: Logbook | null;
@@ -84,9 +88,27 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
   const [newRecordId, setNewRecordId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // User profile state
+  const [stationGridSquare, setStationGridSquare] = useState<string>("");
+
   // Logbook state
   const [logbooks, setLogbooks] = useState<Logbook[]>([]);
   const [currentLogbook, setCurrentLogbookState] = useState<Logbook | null>(null);
+
+  // Load user profile from API
+  const loadUserProfile = useCallback(async () => {
+    try {
+      const response = await fetch("/api/profile");
+      if (!response.ok) {
+        throw new Error("Failed to load user profile");
+      }
+      const profile = await response.json();
+      setStationGridSquare(profile.gridSquare || "");
+    } catch (error) {
+      console.error("Failed to load user profile:", error);
+      setStationGridSquare("");
+    }
+  }, []);
 
   // Load logbooks from API
   const loadLogbooks = useCallback(async () => {
@@ -181,6 +203,9 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // User is authenticated, fetch data
       try {
+        // Load user profile (grid square, etc.)
+        await loadUserProfile();
+
         // Load logbooks first
         const response = await fetch("/api/logbooks");
         if (response.ok) {
@@ -205,7 +230,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     loadInitialData();
-  }, [status]);
+  }, [status, loadUserProfile]);
 
   // Calculate filtered records
   const getFilteredRecords = useCallback((): QSORecord[] => {
@@ -470,6 +495,8 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
     qsoRecords,
     filteredRecords,
     isLoading,
+    stationGridSquare,
+    loadUserProfile,
     logbooks,
     currentLogbook,
     setCurrentLogbook,

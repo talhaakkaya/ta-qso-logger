@@ -20,14 +20,15 @@ import {
 } from "@/components/ui/select";
 import { QSORecord } from "@/types";
 import { formatDateTimeForInput, getCurrentDateTimeString } from "@/utils/dateUtils";
-import { getDefaultTxPower, getStoredTimezone, formatDateTimeForDisplay } from "@/utils/settingsUtils";
+import { getDefaultTxPower, getStoredTimezone, formatDateTimeForDisplay, getStationCallsign } from "@/utils/settingsUtils";
 import { coordinatesToGridSquare, gridSquareToCoordinates } from "@/utils/gridSquareUtils";
 import { useToast } from "@/hooks/useToast";
 import { useUserMode } from "@/hooks/useUserMode";
 import { useLocationSearch } from "@/hooks/useLocationSearch";
+import { useQSO } from "@/contexts/QSOContext";
 import locationService from "@/services/locationService";
 import apiService from "@/services/apiService";
-import { Search, MapPin, Loader2, Check, Pencil, Plus, Clock } from "lucide-react";
+import { Search, MapPin, Loader2, Check, Pencil, Plus, Clock, ExternalLink } from "lucide-react";
 
 // Dynamically import LeafletMap to avoid SSR issues
 const LeafletMap = dynamic(
@@ -52,6 +53,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
   onSave,
 }) => {
   const { showToast } = useToast();
+  const { stationGridSquare } = useQSO();
   const userMode = useUserMode();
   const locationSearch = useLocationSearch();
 
@@ -80,7 +82,15 @@ const QSOModal: React.FC<QSOModalProps> = ({
   const [mapCoordinates, setMapCoordinates] = useState<{ lat: number; lon: number } | null>(null);
   const [mapKey, setMapKey] = useState<string>('');
 
-  const isEditMode = record !== null;
+  // Track edit mode state (to prevent title flickering during close animation)
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // Set edit mode when modal opens
+  useEffect(() => {
+    if (show) {
+      setIsEditMode(record !== null);
+    }
+  }, [show, record]);
 
   // Check if QRZ API is configured (only when modal opens)
   useEffect(() => {
@@ -205,7 +215,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
 
     setIsSaving(true);
     try {
-      if (isEditMode) {
+      if (isEditMode && record) {
         await onSave({ ...formData, id: record.id });
       } else {
         await onSave(formData);
@@ -283,6 +293,56 @@ const QSOModal: React.FC<QSOModalProps> = ({
       showToast("Grid square güncellenemedi", "error");
     }
   }, [showToast]);
+
+  // Generate RF Line of Sight URL
+  const generateRFLOSUrl = useCallback((): string | null => {
+    const contactGridSquare = formData.qth;
+
+    // Need both grid squares
+    if (!stationGridSquare || !contactGridSquare || contactGridSquare.length < 4) {
+      return null;
+    }
+
+    try {
+      // Convert grid squares to coordinates
+      const stationCoords = gridSquareToCoordinates(stationGridSquare);
+      const contactCoords = gridSquareToCoordinates(contactGridSquare);
+
+      // Check if conversion was successful
+      if (!stationCoords || !contactCoords) {
+        return null;
+      }
+
+      // Create the data structure for RF LOS
+      const points = [
+        {
+          id: "1",
+          lat: stationCoords.lat,
+          lon: stationCoords.lon,
+          name: getStationCallsign() || "My Station",
+          height: 10
+        },
+        {
+          id: "2",
+          lat: contactCoords.lat,
+          lon: contactCoords.lon,
+          name: formData.callsign || "Contact",
+          height: 10
+        }
+      ];
+
+      // Base64 encode the JSON
+      const jsonString = JSON.stringify(points);
+      const base64Encoded = btoa(jsonString);
+
+      // Generate the URL
+      const url = `https://rflos.qso.app/?p=${base64Encoded}&from=1&to=2&sel=1%2C2&hl=0&pv=0&los=1`;
+      return url;
+    } catch (error) {
+      console.error("Failed to generate RF LOS URL:", error);
+      return null;
+    }
+  }, [stationGridSquare, formData.qth, formData.callsign]);
 
   // Handle QRZ API lookup
   const handleQRZLookup = async () => {
@@ -616,7 +676,23 @@ const QSOModal: React.FC<QSOModalProps> = ({
           {/* Map Display - Show if grid square exists - Advanced Mode Only */}
           {userMode === 'advanced' && mapCoordinates && show && (
             <div key={mapKey} className="space-y-2">
-              <Label>Konum Haritası ({formData.qth})</Label>
+              <div className="flex items-center gap-2">
+                <Label>Konum Haritası ({formData.qth})</Label>
+                {(() => {
+                  const rflosUrl = generateRFLOSUrl();
+                  return rflosUrl ? (
+                    <a
+                      href={rflosUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      RF Line of Sight Analizi
+                    </a>
+                  ) : null;
+                })()}
+              </div>
               <div key={`map-container-${mapKey}`} className="border rounded-lg overflow-hidden" style={{ height: '200px' }}>
                 <LeafletMap
                   latitude={mapCoordinates.lat}

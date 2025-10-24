@@ -34,7 +34,7 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
   const { showToast } = useToast();
-  const { deleteAllQSORecords } = useQSO();
+  const { deleteAllQSORecords, loadUserProfile } = useQSO();
   const [settings, setSettings] = useState<UserSettings>({
     timezone: TIMEZONE_OPTIONS[0],
     stationCallsign: "",
@@ -98,6 +98,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
       if (!response.ok) {
         throw new Error("Failed to update profile");
       }
+
+      // Reload user profile in context
+      await loadUserProfile();
 
       showToast("Ayarlar kaydedildi", "success");
       onHide();
