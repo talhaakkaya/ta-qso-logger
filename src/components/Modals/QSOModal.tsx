@@ -379,7 +379,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
             if (latMatch && lonMatch) {
               const lat = parseFloat(latMatch[1]);
               const lon = parseFloat(lonMatch[1]);
-              const gridSquare = coordinatesToGridSquare(lat, lon);
+              const gridSquare = coordinatesToGridSquare(lat, lon, 10);
               handleFieldChange("qth", gridSquare);
             }
           } catch (error) {
