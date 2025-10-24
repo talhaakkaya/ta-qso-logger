@@ -253,7 +253,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
     try {
       // Convert coordinates to grid square
       const { lat, lon } = locationService.getCoordinatesFromResult(result);
-      const gridSquare = coordinatesToGridSquare(lat, lon);
+      const gridSquare = coordinatesToGridSquare(lat, lon, 10);
 
       // Fill grid square field
       handleFieldChange("qth", gridSquare);
@@ -281,7 +281,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
   const handleMapLocationChange = useCallback((lat: number, lon: number) => {
     try {
       // Convert new coordinates to grid square
-      const newGridSquare = coordinatesToGridSquare(lat, lon);
+      const newGridSquare = coordinatesToGridSquare(lat, lon, 10);
 
       // Update grid square field
       setFormData((prev) => ({ ...prev, qth: newGridSquare }));
