@@ -56,6 +56,15 @@ class ApiService {
     });
   }
 
+  async deleteAllQSORecords(logbookId?: string): Promise<number> {
+    const url = logbookId
+      ? `/qso/delete-all?logbookId=${logbookId}`
+      : "/qso/delete-all";
+    return await this.request<number>(url, {
+      method: "DELETE",
+    });
+  }
+
   // Export API
 
   async exportQSORecords(logbookId?: string): Promise<Blob> {
@@ -104,6 +113,36 @@ class ApiService {
 
   async lookupCallsign(callsign: string): Promise<QRZLookupResult> {
     return await this.request<QRZLookupResult>(`/qrz/${callsign}`);
+  }
+
+  // Logbook API
+
+  async getLogbooks(): Promise<any[]> {
+    return await this.request<any[]>("/logbooks");
+  }
+
+  async createLogbook(name: string): Promise<any> {
+    return await this.request<any>("/logbooks", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  // Profile API
+
+  async getProfile(): Promise<any> {
+    return await this.request<any>("/profile");
+  }
+
+  async updateProfile(updates: {
+    callsign?: string;
+    name?: string;
+    gridSquare?: string;
+  }): Promise<any> {
+    return await this.request<any>("/profile", {
+      method: "PUT",
+      body: JSON.stringify(updates),
+    });
   }
 }
 

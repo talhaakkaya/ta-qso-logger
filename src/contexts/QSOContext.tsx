@@ -6,6 +6,7 @@ import React, {
   useState,
   useCallback,
   useEffect,
+  useMemo,
 } from "react";
 import { useSession } from "next-auth/react";
 import { QSORecord, FilterState, PaginationState, Logbook } from "@/types";
@@ -14,7 +15,17 @@ import apiService from "@/services/apiService";
 import adifService from "@/services/adifService";
 import csvService from "@/services/csvService";
 import { ROWS_PER_PAGE } from "@/utils/constants";
-import { getCurrentDateTimeInTimezone } from "@/utils/settingsUtils";
+import {
+  useQSOs,
+  useCreateQSO,
+  useUpdateQSO,
+  useDeleteQSO,
+  useDeleteAllQSOs,
+  useLogbooks,
+  useCreateLogbook,
+  useProfile,
+  useImportQSOs,
+} from "@/hooks/useQSOQueries";
 
 interface QSOContextType {
   // Data
@@ -73,8 +84,9 @@ const QSOContext = createContext<QSOContextType | undefined>(undefined);
 export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { data: session, status } = useSession();
-  const [qsoRecords, setQSORecords] = useState<QSORecord[]>([]);
+  const { status } = useSession();
+
+  // ==================== UI State (kept in context) ====================
   const [filters, setFiltersState] = useState<FilterState>({
     year: "",
     month: "",
@@ -86,154 +98,40 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
     totalPages: 1,
   });
   const [newRecordId, setNewRecordId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // User profile state
-  const [stationGridSquare, setStationGridSquare] = useState<string>("");
-
-  // Logbook state
-  const [logbooks, setLogbooks] = useState<Logbook[]>([]);
   const [currentLogbook, setCurrentLogbookState] = useState<Logbook | null>(null);
 
-  // Load user profile from API
-  const loadUserProfile = useCallback(async () => {
-    try {
-      const response = await fetch("/api/profile");
-      if (!response.ok) {
-        throw new Error("Failed to load user profile");
-      }
-      const profile = await response.json();
-      setStationGridSquare(profile.gridSquare || "");
-    } catch (error) {
-      console.error("Failed to load user profile:", error);
-      setStationGridSquare("");
-    }
-  }, []);
+  // ==================== TanStack Query Hooks ====================
 
-  // Load logbooks from API
-  const loadLogbooks = useCallback(async () => {
-    try {
-      const response = await fetch("/api/logbooks");
-      if (!response.ok) {
-        throw new Error("Failed to load logbooks");
-      }
-      const data = await response.json();
-      setLogbooks(data);
+  // Fetch logbooks
+  const { data: logbooksData = [], isLoading: logbooksLoading, refetch: refetchLogbooks } = useLogbooks();
 
-      // Auto-select default logbook if no current logbook is set
-      if (!currentLogbook && data.length > 0) {
-        const defaultLogbook = data.find((lb: Logbook) => lb.isDefault) || data[0];
-        setCurrentLogbookState(defaultLogbook);
-      }
-    } catch (error) {
-      console.error("Failed to load logbooks:", error);
-    }
-  }, [currentLogbook]);
+  // Fetch QSOs for current logbook
+  const { data: qsoRecords = [], isLoading: qsosLoading, refetch: refetchQSOs } = useQSOs(currentLogbook?.id);
 
-  // Set current logbook and reload QSOs
-  const setCurrentLogbook = useCallback(async (logbookIdOrObject: string | Logbook) => {
-    // Handle both ID (string) and object
-    const logbook = typeof logbookIdOrObject === 'string'
-      ? logbooks.find((lb) => lb.id === logbookIdOrObject)
-      : logbookIdOrObject;
+  // Fetch user profile
+  const { data: profileData, refetch: refetchProfile } = useProfile();
 
-    if (logbook) {
-      setCurrentLogbookState(logbook);
+  // Mutations
+  const createQSOMutation = useCreateQSO(currentLogbook?.id);
+  const updateQSOMutation = useUpdateQSO(currentLogbook?.id);
+  const deleteQSOMutation = useDeleteQSO(currentLogbook?.id);
+  const deleteAllQSOMutation = useDeleteAllQSOs(currentLogbook?.id);
+  const createLogbookMutation = useCreateLogbook();
+  const importQSOMutation = useImportQSOs(currentLogbook?.id);
 
-      // Reload QSOs for the selected logbook
-      setIsLoading(true);
-      try {
-        const records = await apiService.getQSORecords(logbook.id);
-        setQSORecords(records);
-      } catch (error) {
-        console.error("Failed to load QSO records:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  }, [logbooks]);
+  // ==================== Computed Values ====================
 
-  // Create new logbook
-  const createLogbook = useCallback(async (name: string): Promise<Logbook> => {
-    try {
-      const response = await fetch("/api/logbooks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
+  // Overall loading state
+  const isLoading = logbooksLoading || qsosLoading;
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create logbook");
-      }
+  // User profile data
+  const stationGridSquare = profileData?.gridSquare || "";
 
-      const newLogbook = await response.json();
-
-      // Add to local state
-      setLogbooks((prev) => [...prev, newLogbook]);
-
-      return newLogbook;
-    } catch (error) {
-      console.error("Failed to create logbook:", error);
-      throw error;
-    }
-  }, []);
-
-  // Helper function to update logbook QSO count
-  const updateLogbookCount = useCallback((logbookId: string, delta: number) => {
-    setLogbooks((prev) =>
-      prev.map((logbook) =>
-        logbook.id === logbookId
-          ? { ...logbook, qsoCount: logbook.qsoCount + delta }
-          : logbook
-      )
-    );
-  }, []);
-
-  // Load initial data from API only when authenticated
-  useEffect(() => {
-    const loadInitialData = async () => {
-      // Only fetch data when authenticated
-      if (status !== "authenticated") {
-        if (status === "unauthenticated") {
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      // User is authenticated, fetch data
-      try {
-        // Load user profile (grid square, etc.)
-        await loadUserProfile();
-
-        // Load logbooks first
-        const response = await fetch("/api/logbooks");
-        if (response.ok) {
-          const logbooksData = await response.json();
-          setLogbooks(logbooksData);
-
-          // Auto-select default logbook
-          const defaultLogbook = logbooksData.find((lb: Logbook) => lb.isDefault) || logbooksData[0];
-          if (defaultLogbook) {
-            setCurrentLogbookState(defaultLogbook);
-
-            // Load QSO records for the default logbook
-            const records = await apiService.getQSORecords(defaultLogbook.id);
-            setQSORecords(records);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load initial data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadInitialData();
-  }, [status, loadUserProfile]);
+  // Logbooks list
+  const logbooks = logbooksData;
 
   // Calculate filtered records
-  const getFilteredRecords = useCallback((): QSORecord[] => {
+  const filteredRecords = useMemo((): QSORecord[] => {
     let filtered = [...qsoRecords];
 
     // Apply year filter
@@ -268,9 +166,17 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
     return filtered;
   }, [qsoRecords, filters]);
 
-  const filteredRecords = getFilteredRecords();
+  // ==================== Auto-select Default Logbook ====================
 
-  // Update pagination when filtered records change
+  useEffect(() => {
+    if (status === "authenticated" && logbooks.length > 0 && !currentLogbook) {
+      const defaultLogbook = logbooks.find((lb) => lb.isDefault) || logbooks[0];
+      setCurrentLogbookState(defaultLogbook);
+    }
+  }, [status, logbooks, currentLogbook]);
+
+  // ==================== Update Pagination ====================
+
   useEffect(() => {
     const totalPages = Math.ceil(filteredRecords.length / ROWS_PER_PAGE);
     setPagination((prev) => ({
@@ -280,99 +186,60 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
     }));
   }, [filteredRecords.length]);
 
-  // Actions
+  // ==================== Context Methods ====================
+
+  const loadUserProfile = useCallback(async () => {
+    await refetchProfile();
+  }, [refetchProfile]);
+
+  const loadLogbooks = useCallback(async () => {
+    await refetchLogbooks();
+  }, [refetchLogbooks]);
+
+  const setCurrentLogbook = useCallback(async (logbookIdOrObject: string | Logbook) => {
+    // Handle both ID (string) and object
+    const logbook = typeof logbookIdOrObject === 'string'
+      ? logbooks.find((lb) => lb.id === logbookIdOrObject)
+      : logbookIdOrObject;
+
+    if (logbook) {
+      setCurrentLogbookState(logbook);
+      // TanStack Query will automatically refetch QSOs for new logbook
+    }
+  }, [logbooks]);
+
+  const createLogbook = useCallback(async (name: string): Promise<Logbook> => {
+    const newLogbook = await createLogbookMutation.mutateAsync(name);
+    return newLogbook;
+  }, [createLogbookMutation]);
+
   const deleteQSORecord = useCallback(
     async (id: string): Promise<void> => {
-      try {
-        // Call the API to delete the record
-        await apiService.deleteQSORecord(id);
-
-        // Remove from local state
-        setQSORecords((prev) => prev.filter((record) => record.id !== id));
-
-        // Update logbook count (-1)
-        if (currentLogbook) {
-          updateLogbookCount(currentLogbook.id, -1);
-        }
-      } catch (error) {
-        console.error("Failed to delete QSO record:", error);
-        throw error;
-      }
+      await deleteQSOMutation.mutateAsync(id);
     },
-    [currentLogbook, updateLogbookCount]
+    [deleteQSOMutation]
   );
 
   const deleteAllQSORecords = useCallback(async (): Promise<number> => {
-    try {
-      // Call the API to delete all records
-      const response = await fetch("/api/qso/delete-all", {
-        method: "DELETE",
-      });
+    const result = await deleteAllQSOMutation.mutateAsync();
+    return result;
+  }, [deleteAllQSOMutation]);
 
-      if (!response.ok) {
-        throw new Error("Failed to delete all QSO records");
-      }
-
-      const result = await response.json();
-
-      // Clear local state
-      setQSORecords([]);
-
-      // Reload logbooks to update all counts (since it affects all logbooks)
-      await loadLogbooks();
-
-      return result.deletedCount;
-    } catch (error) {
-      console.error("Failed to delete all QSO records:", error);
-      throw error;
-    }
-  }, [loadLogbooks]);
-
-  // Immediate save methods for modal
   const createQSORecordImmediate = useCallback(
     async (data: Omit<QSORecord, "id">): Promise<QSORecord> => {
-      try {
-        // Save to API immediately with current logbook
-        const savedRecord = await apiService.createQSORecord(
-          data,
-          currentLogbook?.id
-        );
-
-        // Add to local state
-        setQSORecords((prev) => [savedRecord, ...prev]);
-
-        // Update logbook count (+1)
-        if (currentLogbook) {
-          updateLogbookCount(currentLogbook.id, 1);
-        }
-
-        return savedRecord;
-      } catch (error) {
-        console.error("Failed to create QSO record:", error);
-        throw error;
-      }
+      const savedRecord = await createQSOMutation.mutateAsync(data);
+      setNewRecordId(savedRecord.id); // Track new record for highlighting
+      return savedRecord;
     },
-    [currentLogbook, updateLogbookCount],
+    [createQSOMutation]
   );
 
   const updateQSORecordImmediate = useCallback(
     async (id: string, data: Partial<QSORecord>): Promise<QSORecord> => {
-      try {
-        // Update on API immediately
-        const updatedRecord = await apiService.updateQSORecord(id, data);
-
-        // Update local state
-        setQSORecords((prev) =>
-          prev.map((record) => (record.id === id ? updatedRecord : record)),
-        );
-
-        return updatedRecord;
-      } catch (error) {
-        console.error("Failed to update QSO record:", error);
-        throw error;
-      }
+      const updatedRecord = await updateQSOMutation.mutateAsync({ id, updates: data });
+      return updatedRecord;
     },
-    [],
+    [updateQSOMutation]
   );
 
   const exportToADIF = useCallback(async (): Promise<void> => {
@@ -411,19 +278,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
         // Use provided logbookId or default to current logbook
         const targetLogbookId = logbookId || currentLogbook?.id;
 
-        const result = await apiService.importQSORecords(file, targetLogbookId);
-
-        // Add imported records to local state only if importing to current logbook
-        if (result.records && result.records.length > 0) {
-          if (targetLogbookId === currentLogbook?.id) {
-            setQSORecords((prev) => [...result.records, ...prev]);
-          }
-
-          // Update logbook count by number of imported records
-          if (targetLogbookId) {
-            updateLogbookCount(targetLogbookId, result.records.length);
-          }
-        }
+        const result = await importQSOMutation.mutateAsync(file);
 
         return {
           success: result.success,
@@ -436,7 +291,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    [currentLogbook, updateLogbookCount]
+    [currentLogbook, importQSOMutation]
   );
 
   const importFromCSV = useCallback(
@@ -452,17 +307,9 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
         // Use CSV service for import logic
         const result = await csvService.importCSVRecords(parsedData, columnMapping, targetLogbookId);
 
-        // Add imported records to local state only if importing to current logbook
-        if (result.records && result.records.length > 0) {
-          if (targetLogbookId === currentLogbook?.id) {
-            setQSORecords((prev) => [...result.records!, ...prev]);
-          }
-
-          // Update logbook count by number of imported records
-          if (targetLogbookId) {
-            updateLogbookCount(targetLogbookId, result.records.length);
-          }
-        }
+        // Refresh QSOs and logbooks after import
+        await refetchQSOs();
+        await refetchLogbooks();
 
         return result;
       } catch (error) {
@@ -470,7 +317,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    [currentLogbook, updateLogbookCount]
+    [currentLogbook, refetchQSOs, refetchLogbooks]
   );
 
   const setFilters = useCallback((newFilters: Partial<FilterState>) => {
@@ -490,6 +337,8 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
   const clearNewRecordId = useCallback(() => {
     setNewRecordId(null);
   }, []);
+
+  // ==================== Context Value ====================
 
   const value: QSOContextType = {
     qsoRecords,

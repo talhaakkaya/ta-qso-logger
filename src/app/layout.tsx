@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import AuthSessionProvider from "@/components/Providers/SessionProvider";
 import { ThemeProvider } from "@/components/Providers/ThemeProvider";
+import QueryProvider from "@/components/Providers/QueryProvider";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -66,15 +67,17 @@ export default function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning>
       <body className="bg-background text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={true}
-          storageKey="qso-logger-theme"
-          disableTransitionOnChange
-        >
-          <AuthSessionProvider>{children}</AuthSessionProvider>
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={true}
+            storageKey="qso-logger-theme"
+            disableTransitionOnChange
+          >
+            <AuthSessionProvider>{children}</AuthSessionProvider>
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );
