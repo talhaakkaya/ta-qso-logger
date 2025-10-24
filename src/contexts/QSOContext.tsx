@@ -8,7 +8,7 @@ import React, {
   useEffect,
 } from "react";
 import { useSession } from "next-auth/react";
-import { QSORecord, FilterState, PaginationState } from "@/types";
+import { QSORecord, FilterState, PaginationState, Logbook } from "@/types";
 import { ImportResult } from "@/types/qso.types";
 import apiService from "@/services/apiService";
 import adifService from "@/services/adifService";
@@ -21,6 +21,13 @@ interface QSOContextType {
   qsoRecords: QSORecord[];
   filteredRecords: QSORecord[];
   isLoading: boolean;
+
+  // Logbook
+  logbooks: Logbook[];
+  currentLogbook: Logbook | null;
+  setCurrentLogbook: (logbookIdOrObject: string | Logbook) => Promise<void>;
+  loadLogbooks: () => Promise<void>;
+  createLogbook: (name: string) => Promise<Logbook>;
 
   // Pagination
   pagination: PaginationState;
@@ -38,10 +45,11 @@ interface QSOContextType {
 
   // Export/Import
   exportToADIF: () => Promise<void>;
-  importFromADIF: (file: File) => Promise<ImportResult>;
+  importFromADIF: (file: File, logbookId?: string) => Promise<ImportResult>;
   importFromCSV: (
     parsedData: { headers: string[]; rows: string[][] },
-    columnMapping: Record<string, string>
+    columnMapping: Record<string, string>,
+    logbookId?: string
   ) => Promise<ImportResult>;
 
   // Filter/Search
@@ -76,6 +84,90 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
   const [newRecordId, setNewRecordId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Logbook state
+  const [logbooks, setLogbooks] = useState<Logbook[]>([]);
+  const [currentLogbook, setCurrentLogbookState] = useState<Logbook | null>(null);
+
+  // Load logbooks from API
+  const loadLogbooks = useCallback(async () => {
+    try {
+      const response = await fetch("/api/logbooks");
+      if (!response.ok) {
+        throw new Error("Failed to load logbooks");
+      }
+      const data = await response.json();
+      setLogbooks(data);
+
+      // Auto-select default logbook if no current logbook is set
+      if (!currentLogbook && data.length > 0) {
+        const defaultLogbook = data.find((lb: Logbook) => lb.isDefault) || data[0];
+        setCurrentLogbookState(defaultLogbook);
+      }
+    } catch (error) {
+      console.error("Failed to load logbooks:", error);
+    }
+  }, [currentLogbook]);
+
+  // Set current logbook and reload QSOs
+  const setCurrentLogbook = useCallback(async (logbookIdOrObject: string | Logbook) => {
+    // Handle both ID (string) and object
+    const logbook = typeof logbookIdOrObject === 'string'
+      ? logbooks.find((lb) => lb.id === logbookIdOrObject)
+      : logbookIdOrObject;
+
+    if (logbook) {
+      setCurrentLogbookState(logbook);
+
+      // Reload QSOs for the selected logbook
+      setIsLoading(true);
+      try {
+        const records = await apiService.getQSORecords(logbook.id);
+        setQSORecords(records);
+      } catch (error) {
+        console.error("Failed to load QSO records:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [logbooks]);
+
+  // Create new logbook
+  const createLogbook = useCallback(async (name: string): Promise<Logbook> => {
+    try {
+      const response = await fetch("/api/logbooks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create logbook");
+      }
+
+      const newLogbook = await response.json();
+
+      // Add to local state
+      setLogbooks((prev) => [...prev, newLogbook]);
+
+      return newLogbook;
+    } catch (error) {
+      console.error("Failed to create logbook:", error);
+      throw error;
+    }
+  }, []);
+
+  // Helper function to update logbook QSO count
+  const updateLogbookCount = useCallback((logbookId: string, delta: number) => {
+    setLogbooks((prev) =>
+      prev.map((logbook) =>
+        logbook.id === logbookId
+          ? { ...logbook, qsoCount: logbook.qsoCount + delta }
+          : logbook
+      )
+    );
+  }, []);
+
   // Load initial data from API only when authenticated
   useEffect(() => {
     const loadInitialData = async () => {
@@ -89,10 +181,24 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // User is authenticated, fetch data
       try {
-        const records = await apiService.getQSORecords();
-        setQSORecords(records);
+        // Load logbooks first
+        const response = await fetch("/api/logbooks");
+        if (response.ok) {
+          const logbooksData = await response.json();
+          setLogbooks(logbooksData);
+
+          // Auto-select default logbook
+          const defaultLogbook = logbooksData.find((lb: Logbook) => lb.isDefault) || logbooksData[0];
+          if (defaultLogbook) {
+            setCurrentLogbookState(defaultLogbook);
+
+            // Load QSO records for the default logbook
+            const records = await apiService.getQSORecords(defaultLogbook.id);
+            setQSORecords(records);
+          }
+        }
       } catch (error) {
-        console.error("Failed to load QSO records:", error);
+        console.error("Failed to load initial data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -150,18 +256,26 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [filteredRecords.length]);
 
   // Actions
-  const deleteQSORecord = useCallback(async (id: string): Promise<void> => {
-    try {
-      // Call the API to delete the record
-      await apiService.deleteQSORecord(id);
+  const deleteQSORecord = useCallback(
+    async (id: string): Promise<void> => {
+      try {
+        // Call the API to delete the record
+        await apiService.deleteQSORecord(id);
 
-      // Remove from local state
-      setQSORecords((prev) => prev.filter((record) => record.id !== id));
-    } catch (error) {
-      console.error("Failed to delete QSO record:", error);
-      throw error;
-    }
-  }, []);
+        // Remove from local state
+        setQSORecords((prev) => prev.filter((record) => record.id !== id));
+
+        // Update logbook count (-1)
+        if (currentLogbook) {
+          updateLogbookCount(currentLogbook.id, -1);
+        }
+      } catch (error) {
+        console.error("Failed to delete QSO record:", error);
+        throw error;
+      }
+    },
+    [currentLogbook, updateLogbookCount]
+  );
 
   const deleteAllQSORecords = useCallback(async (): Promise<number> => {
     try {
@@ -179,22 +293,33 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
       // Clear local state
       setQSORecords([]);
 
+      // Reload logbooks to update all counts (since it affects all logbooks)
+      await loadLogbooks();
+
       return result.deletedCount;
     } catch (error) {
       console.error("Failed to delete all QSO records:", error);
       throw error;
     }
-  }, []);
+  }, [loadLogbooks]);
 
   // Immediate save methods for modal
   const createQSORecordImmediate = useCallback(
     async (data: Omit<QSORecord, "id">): Promise<QSORecord> => {
       try {
-        // Save to API immediately
-        const savedRecord = await apiService.createQSORecord(data);
+        // Save to API immediately with current logbook
+        const savedRecord = await apiService.createQSORecord(
+          data,
+          currentLogbook?.id
+        );
 
         // Add to local state
         setQSORecords((prev) => [savedRecord, ...prev]);
+
+        // Update logbook count (+1)
+        if (currentLogbook) {
+          updateLogbookCount(currentLogbook.id, 1);
+        }
 
         return savedRecord;
       } catch (error) {
@@ -202,7 +327,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    [],
+    [currentLogbook, updateLogbookCount],
   );
 
   const updateQSORecordImmediate = useCallback(
@@ -227,10 +352,17 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const exportToADIF = useCallback(async (): Promise<void> => {
     try {
-      const blob = await apiService.exportQSORecords();
+      const blob = await apiService.exportQSORecords(currentLogbook?.id);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
-      const filename = `qso-export-${new Date().toISOString().split("T")[0]}.adi`;
+
+      // Include logbook name in filename
+      const sanitizedLogbookName = (currentLogbook?.name || 'QSO')
+        .replace(/[^a-zA-Z0-9-]/g, '-')
+        .replace(/-+/g, '-');
+      const dateStr = new Date().toISOString().split("T")[0];
+      const filename = `qso-export-${sanitizedLogbookName}-${dateStr}.adi`;
+
       a.style.display = "none";
       a.href = url;
       a.download = filename;
@@ -243,44 +375,68 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
         "Failed to export via API, falling back to local export:",
         error,
       );
-      // Fallback to local ADIF export
-      adifService.downloadADIF(qsoRecords);
+      // Fallback to local ADIF export with logbook name
+      adifService.downloadADIF(qsoRecords, currentLogbook?.name);
     }
-  }, [qsoRecords]);
+  }, [qsoRecords, currentLogbook]);
 
-  const importFromADIF = useCallback(async (file: File): Promise<ImportResult> => {
-    try {
-      const result = await apiService.importQSORecords(file);
+  const importFromADIF = useCallback(
+    async (file: File, logbookId?: string): Promise<ImportResult> => {
+      try {
+        // Use provided logbookId or default to current logbook
+        const targetLogbookId = logbookId || currentLogbook?.id;
 
-      // Add imported records to local state
-      if (result.records && result.records.length > 0) {
-        setQSORecords((prev) => [...result.records, ...prev]);
+        const result = await apiService.importQSORecords(file, targetLogbookId);
+
+        // Add imported records to local state only if importing to current logbook
+        if (result.records && result.records.length > 0) {
+          if (targetLogbookId === currentLogbook?.id) {
+            setQSORecords((prev) => [...result.records, ...prev]);
+          }
+
+          // Update logbook count by number of imported records
+          if (targetLogbookId) {
+            updateLogbookCount(targetLogbookId, result.records.length);
+          }
+        }
+
+        return {
+          success: result.success,
+          imported: result.imported,
+          errors: result.errors || 0,
+          errorMessages: result.errorMessages,
+        };
+      } catch (error) {
+        console.error("Failed to import QSO records:", error);
+        throw error;
       }
-
-      return {
-        success: result.success,
-        imported: result.imported,
-        errors: result.errors || 0,
-        errorMessages: result.errorMessages,
-      };
-    } catch (error) {
-      console.error("Failed to import QSO records:", error);
-      throw error;
-    }
-  }, []);
+    },
+    [currentLogbook, updateLogbookCount]
+  );
 
   const importFromCSV = useCallback(
     async (
       parsedData: { headers: string[]; rows: string[][] },
-      columnMapping: Record<string, string>
+      columnMapping: Record<string, string>,
+      logbookId?: string
     ): Promise<ImportResult> => {
       try {
-        // Use CSV service for import logic
-        const result = await csvService.importCSVRecords(parsedData, columnMapping);
+        // Use provided logbookId or default to current logbook
+        const targetLogbookId = logbookId || currentLogbook?.id;
 
-        // Add imported records to local state
+        // Use CSV service for import logic
+        const result = await csvService.importCSVRecords(parsedData, columnMapping, targetLogbookId);
+
+        // Add imported records to local state only if importing to current logbook
         if (result.records && result.records.length > 0) {
-          setQSORecords((prev) => [...result.records!, ...prev]);
+          if (targetLogbookId === currentLogbook?.id) {
+            setQSORecords((prev) => [...result.records!, ...prev]);
+          }
+
+          // Update logbook count by number of imported records
+          if (targetLogbookId) {
+            updateLogbookCount(targetLogbookId, result.records.length);
+          }
         }
 
         return result;
@@ -289,7 +445,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    []
+    [currentLogbook, updateLogbookCount]
   );
 
   const setFilters = useCallback((newFilters: Partial<FilterState>) => {
@@ -314,6 +470,11 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
     qsoRecords,
     filteredRecords,
     isLoading,
+    logbooks,
+    currentLogbook,
+    setCurrentLogbook,
+    loadLogbooks,
+    createLogbook,
     pagination,
     filters,
     deleteQSORecord,

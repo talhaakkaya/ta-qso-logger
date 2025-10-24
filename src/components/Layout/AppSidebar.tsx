@@ -13,6 +13,8 @@ import {
   Map,
   Settings,
   HelpCircle,
+  BookOpen,
+  Plus,
 } from "lucide-react";
 import {
   Sidebar,
@@ -28,6 +30,13 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ThemeToggle } from "@/components/Layout/ThemeToggle";
 
 interface AppSidebarProps {
@@ -36,6 +45,7 @@ interface AppSidebarProps {
   onShowCSVImport: () => void;
   onShowQSOMap: () => void;
   onShowQCodes: () => void;
+  onShowCreateLogbook: () => void;
 }
 
 export function AppSidebar({
@@ -44,8 +54,9 @@ export function AppSidebar({
   onShowCSVImport,
   onShowQSOMap,
   onShowQCodes,
+  onShowCreateLogbook,
 }: AppSidebarProps) {
-  const { qsoRecords, exportToADIF } = useQSO();
+  const { qsoRecords, exportToADIF, logbooks, currentLogbook, setCurrentLogbook } = useQSO();
   const { showToast } = useToast();
   const userMode = useUserMode();
 
@@ -79,6 +90,47 @@ export function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Logbook</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <div className="px-2 py-2 space-y-2">
+              <Select
+                value={currentLogbook?.id || ""}
+                onValueChange={(value) => setCurrentLogbook(value)}
+              >
+                <SelectTrigger className="w-full">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    <SelectValue placeholder="Logbook seçin" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {logbooks.map((logbook) => (
+                    <SelectItem key={logbook.id} value={logbook.id}>
+                      <div className="flex items-center justify-between w-full gap-2">
+                        <span>{logbook.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({logbook.qsoCount} QSO)
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton onClick={onShowCreateLogbook} className="w-full">
+                    <Plus className="h-4 w-4" />
+                    <span>Yeni Logbook</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </div>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
         <SidebarGroup>
           <SidebarGroupLabel>Menü</SidebarGroupLabel>
           <SidebarGroupContent>

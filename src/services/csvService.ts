@@ -142,7 +142,8 @@ function parseOptionalFields(
 async function processCSVRow(
   row: string[],
   rowNum: number,
-  fieldToIndex: Record<string, number>
+  fieldToIndex: Record<string, number>,
+  logbookId?: string
 ): Promise<QSORecord> {
   // Build QSO record from row
   const qsoData: Partial<QSORecord> = {};
@@ -164,8 +165,8 @@ async function processCSVRow(
   const optionalFields = parseOptionalFields(row, fieldToIndex);
   Object.assign(qsoData, optionalFields);
 
-  // Create the record via API
-  const savedRecord = await apiService.createQSORecord(qsoData as Omit<QSORecord, "id">);
+  // Create the record via API with logbookId
+  const savedRecord = await apiService.createQSORecord(qsoData as Omit<QSORecord, "id">, logbookId);
   return savedRecord;
 }
 
@@ -174,7 +175,8 @@ async function processCSVRow(
  */
 export async function importCSVRecords(
   parsedData: ParsedCSV,
-  columnMapping: CSVFieldMapping
+  columnMapping: CSVFieldMapping,
+  logbookId?: string
 ): Promise<ImportResult> {
   const importedRecords: QSORecord[] = [];
   const errorMessages: string[] = [];
@@ -190,7 +192,7 @@ export async function importCSVRecords(
     const rowNum = i + 2; // +2 because header is row 1, and array is 0-indexed
 
     try {
-      const savedRecord = await processCSVRow(row, rowNum, fieldToIndex);
+      const savedRecord = await processCSVRow(row, rowNum, fieldToIndex, logbookId);
       importedRecords.push(savedRecord);
       successCount++;
     } catch (error) {

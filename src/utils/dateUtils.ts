@@ -65,7 +65,8 @@ export const getCurrentDateTimeString = (): string => {
   const day = String(now.getUTCDate()).padStart(2, "0");
   const hours = String(now.getUTCHours()).padStart(2, "0");
   const minutes = String(now.getUTCMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+  // Add 'Z' suffix to explicitly mark as UTC
+  return `${year}-${month}-${day}T${hours}:${minutes}Z`;
 };
 
 export const formatDateTimeForInput = (datetime: string | Date): string => {

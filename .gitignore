@@ -120,3 +120,5 @@ yarn-debug.log*
 yarn-error.log*
 .yarn-integrity
 # Yarn Integrity file
+
+/src/generated/prisma

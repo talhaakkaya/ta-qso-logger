@@ -38,23 +38,67 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
   const [settings, setSettings] = useState<UserSettings>({
     timezone: TIMEZONE_OPTIONS[0],
     stationCallsign: "",
+    gridSquare: "",
     defaultTxPower: 5,
     mode: "simple",
   });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load current settings when modal opens
   useEffect(() => {
     if (show) {
-      const currentSettings = getUserSettings();
-      setSettings(currentSettings);
+      loadSettings();
     }
   }, [show]);
 
-  const handleSave = () => {
+  const loadSettings = async () => {
+    setIsLoading(true);
     try {
+      // Load localStorage settings
+      const currentSettings = getUserSettings();
+
+      // Fetch profile from database to get callsign and grid square
+      const response = await fetch("/api/profile");
+      if (response.ok) {
+        const profile = await response.json();
+        // Override localStorage values with database values
+        currentSettings.stationCallsign = profile.callsign || "";
+        currentSettings.gridSquare = profile.gridSquare || "";
+      }
+
+      setSettings(currentSettings);
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+      // Fall back to localStorage only
+      const currentSettings = getUserSettings();
+      setSettings(currentSettings);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      // Save to localStorage
       saveUserSettings(settings);
+
+      // Save callsign and grid square to database
+      const response = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          callsign: settings.stationCallsign,
+          gridSquare: settings.gridSquare,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update profile");
+      }
+
       showToast("Ayarlar kaydedildi", "success");
       onHide();
 
@@ -63,6 +107,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
     } catch (error) {
       console.error("Failed to save settings:", error);
       showToast("Ayarlar kaydedilirken hata oluştu", "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -112,6 +158,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
               }
               placeholder="TA1ABC"
               maxLength={15}
+              disabled={isLoading}
+            />
+          </div>
+
+          {/* Grid Square */}
+          <div className="space-y-2">
+            <Label>Grid Square (Maidenhead Locator)</Label>
+            <Input
+              type="text"
+              value={settings.gridSquare}
+              onChange={(e) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  gridSquare: e.target.value.toUpperCase(),
+                }))
+              }
+              placeholder="KM38ab"
+              maxLength={8}
+              disabled={isLoading}
             />
           </div>
 
@@ -236,12 +301,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button variant="secondary" onClick={handleClose} disabled={isLoading}>
             İptal
           </Button>
-          <Button onClick={handleSave}>
-            <Check />
-            Kaydet
+          <Button onClick={handleSave} disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin" />
+                Kaydediliyor...
+              </>
+            ) : (
+              <>
+                <Check />
+                Kaydet
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

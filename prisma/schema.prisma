@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================
+// PROFILE MODEL
+// =====================================================
+model Profile {
+  id         String    @id @default(uuid()) @db.Uuid
+  email      String    @unique
+  callsign   String?   @unique
+  name       String?
+  gridSquare String?   @map("grid_square")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  logbooks   Logbook[]
+
+  @@map("profiles")
+}
+
+// =====================================================
+// LOGBOOK MODEL
+// =====================================================
+model Logbook {
+  id        String    @id @default(uuid()) @db.Uuid
+  profileId String    @map("profile_id") @db.Uuid
+  name      String
+  isDefault Boolean   @default(false) @map("is_default")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  qsos      Qso[]
+  
+  @@unique([profileId, name])
+  @@index([profileId])
+  @@map("logbooks")
+}
+
+// =====================================================
+// QSO MODEL
+// =====================================================
+model Qso {
+  id         String    @id @default(uuid()) @db.Uuid
+  logbookId  String    @map("logbook_id") @db.Uuid
+  callsign   String
+  qsoDate    DateTime  @map("qso_date") @db.Timestamptz(6)
+  freq       Decimal?  @db.Decimal(12, 6)
+  mode       String?
+  rstSent    String?   @map("rst_sent")
+  rstRcvd    String?   @map("rst_rcvd")
+  txPwr      Int?      @map("tx_pwr")
+  name       String?
+  qth        String?
+  gridSquare String?   @map("grid_square")
+  notes      String?
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  logbook    Logbook   @relation(fields: [logbookId], references: [id], onDelete: Cascade)
+
+  @@unique([logbookId, callsign, qsoDate])
+  @@index([logbookId])
+  @@index([callsign])
+  @@index([qsoDate])
+  @@index([mode])
+  @@index([gridSquare])
+  @@map("qsos")
+}

@@ -1,5 +1,6 @@
 const TIMEZONE_KEY = "qso-logger-timezone";
 const STATION_CALLSIGN_KEY = "qso-logger-station-callsign";
+const GRID_SQUARE_KEY = "qso-logger-grid-square";
 const DEFAULT_TX_POWER_KEY = "qso-logger-default-tx-power";
 const MODE_KEY = "qso-logger-mode";
 
@@ -14,6 +15,7 @@ export interface TimezoneOption {
 export interface UserSettings {
   timezone: TimezoneOption;
   stationCallsign: string;
+  gridSquare: string;
   defaultTxPower: number;
   mode: UserMode;
 }
@@ -100,6 +102,27 @@ export const saveStationCallsign = (callsign: string): void => {
 };
 
 /**
+ * Get the stored grid square from localStorage
+ * Returns empty string if not set
+ */
+export const getGridSquare = (): string => {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return localStorage.getItem(GRID_SQUARE_KEY) || "";
+};
+
+/**
+ * Save grid square to localStorage
+ */
+export const saveGridSquare = (gridSquare: string): void => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(GRID_SQUARE_KEY, gridSquare.toUpperCase().trim());
+  }
+};
+
+/**
  * Get the stored default transmit power from localStorage
  * Returns 5W if not set
  */
@@ -177,6 +200,7 @@ export const getUserSettings = (): UserSettings => {
   return {
     timezone: getStoredTimezone(),
     stationCallsign: getStationCallsign(),
+    gridSquare: getGridSquare(),
     defaultTxPower: getDefaultTxPower(),
     mode: getUserMode(),
   };
@@ -191,6 +215,9 @@ export const saveUserSettings = (settings: Partial<UserSettings>): void => {
   }
   if (settings.stationCallsign !== undefined) {
     saveStationCallsign(settings.stationCallsign);
+  }
+  if (settings.gridSquare !== undefined) {
+    saveGridSquare(settings.gridSquare);
   }
   if (settings.defaultTxPower !== undefined) {
     saveDefaultTxPower(settings.defaultTxPower);

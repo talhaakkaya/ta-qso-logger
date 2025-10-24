@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useSession, signOut } from "next-auth/react";
+import { useQSO } from "@/contexts/QSOContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,13 +18,18 @@ import { LogOut, UserCircle } from "lucide-react";
 
 const Header: React.FC = () => {
   const { data: session } = useSession();
+  const { currentLogbook } = useQSO();
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
       <SidebarTrigger />
       <Separator orientation="vertical" className="h-6" />
       <div className="flex-1">
-        <h1 className="text-lg font-semibold">Hoş Geldiniz</h1>
+        <h1 className="text-lg font-semibold">
+          {currentLogbook?.isDefault
+            ? "Hoş Geldiniz"
+            : currentLogbook?.name || "Hoş Geldiniz"}
+        </h1>
       </div>
 
       <div className="flex items-center gap-3">

@@ -5,12 +5,14 @@ A modern web-based QSO logger for amateur radio operators to track and manage co
 ## Features
 
 - 📡 **QSO Management** - Create, edit, and delete amateur radio contact records
+- 📚 **Multiple Logbooks** - Organize QSOs into separate logbooks (contests, DXpeditions, portable operations, etc.)
 - 📁 **ADIF Support** - Import and export contacts in ADIF format (.adi files)
 - 📊 **CSV Import/Export** - Import and export contacts in CSV format with flexible column mapping
+- 📖 **Logbook Selection** - Choose destination logbook when importing ADIF or CSV files
 - 🗺️ **Interactive Maps** - View all contacts on a world map with Leaflet
 - 📍 **Grid Square Support** - Maidenhead locator system with coordinate conversion
 - 🎨 **Color-Coded Markers** - Visual distinction by operating mode (FM, SSB, Digital, CW)
-- 🔍 **Duplicate Detection** - Automatic detection during import based on callsign, frequency, and datetime
+- 🔎 **Duplicate Detection** - Automatic detection during import based on callsign, frequency, and datetime
 - 🌍 **Timezone Support** - Configure your preferred timezone for logging
 - ⚙️ **User Settings** - Store station callsign, default transmit power, and timezone preferences
 - 🔐 **Google Authentication** - Secure login with user-specific data isolation
@@ -49,7 +51,7 @@ A modern web-based QSO logger for amateur radio operators to track and manage co
 ## Prerequisites
 
 - Node.js 18+
-- MongoDB (local or cloud instance)
+- PostgreSQL 14+
 - Google OAuth 2.0 credentials
 
 ## Installation
@@ -65,18 +67,30 @@ A modern web-based QSO logger for amateur radio operators to track and manage co
    npm install
    ```
 
-3. **Set up environment variables**
+3. **Set up PostgreSQL database**
+   ```bash
+   # Create a PostgreSQL database
+   createdb qso_logger
+
+   # Run Prisma migrations
+   npx prisma migrate deploy
+
+   # Generate Prisma Client
+   npx prisma generate
+   ```
+
+4. **Set up environment variables**
 
    Create a `.env.local` file in the root directory:
    ```env
    NEXTAUTH_URL=http://localhost:3000
    NEXTAUTH_SECRET=your-secret-key-here
-   MONGODB_URI=mongodb://localhost:27017/qso-logger
+   DATABASE_URL=postgresql://user:password@localhost:5432/qso_logger
    GOOGLE_CLIENT_ID=your-google-client-id
    GOOGLE_CLIENT_SECRET=your-google-client-secret
    ```
 
-4. **Set up Google OAuth**
+5. **Set up Google OAuth**
    - Go to [Google Cloud Console](https://console.cloud.google.com/)
    - Create a new project or select an existing one
    - Enable Google+ API
@@ -84,12 +98,12 @@ A modern web-based QSO logger for amateur radio operators to track and manage co
    - Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
    - Copy the Client ID and Client Secret to your `.env.local`
 
-5. **Run the development server**
+6. **Run the development server**
    ```bash
    npm run dev
    ```
 
-6. **Open your browser**
+7. **Open your browser**
 
    Navigate to [http://localhost:3000](http://localhost:3000)
 
@@ -151,7 +165,7 @@ A modern web-based QSO logger for amateur radio operators to track and manage co
 |----------|-------------|---------|
 | `NEXTAUTH_URL` | URL where the app is hosted | `http://localhost:3000` |
 | `NEXTAUTH_SECRET` | Secret for NextAuth.js session encryption | Generate with `openssl rand -base64 32` |
-| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/qso-logger` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:password@localhost:5432/qso_logger` |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID | From Google Cloud Console |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | From Google Cloud Console |
 
@@ -162,11 +176,14 @@ A modern web-based QSO logger for amateur radio operators to track and manage co
 ```
 src/
 ├── app/              # Next.js App Router pages and API routes
+│   ├── (authenticated)/      # Protected routes
+│   ├── api/                  # API endpoints (QSO, logbooks, auth, etc.)
+│   └── auth/                 # Authentication pages
 ├── components/       # React components
 │   ├── Dashboard/    # Main dashboard components
 │   ├── Filters/      # Search and filter components
 │   ├── Layout/       # Header, Sidebar, AppSidebar, ThemeToggle
-│   ├── Modals/       # Modal dialogs (QSO, Import, Settings, etc.)
+│   ├── Modals/       # Modal dialogs (QSO, Import, Settings, Logbooks, etc.)
 │   ├── Providers/    # Theme and context providers
 │   ├── shared/       # Reusable shared components
 │   ├── Table/        # QSO table components with @tanstack/react-table
@@ -179,8 +196,9 @@ src/
 │   ├── useUserMode.ts        # User mode state (simple/advanced)
 │   ├── useToast.ts           # Toast notifications
 │   └── use-mobile.tsx        # Mobile detection hook
-├── lib/              # Utility libraries (tailwind utils)
-├── models/           # MongoDB Mongoose models
+├── lib/              # Utility libraries
+│   ├── prisma.ts             # Prisma Client instance
+│   └── user-helpers.ts       # User/profile helper functions
 ├── services/         # Business logic
 │   ├── adifService.ts        # ADIF import/export
 │   ├── apiService.ts         # API communication
@@ -188,6 +206,9 @@ src/
 │   └── locationService.ts    # Nominatim API integration
 ├── types/            # TypeScript type definitions
 └── utils/            # Utility functions (grid square, timezone, etc.)
+
+prisma/
+└── schema.prisma     # Prisma schema definition and database models
 ```
 
 ### Available Scripts
@@ -212,7 +233,8 @@ src/
 
 **Backend:**
 - Next.js API Routes
-- MongoDB with Mongoose ODM
+- PostgreSQL 14+
+- Prisma ORM
 - NextAuth.js v5 (Google OAuth)
 
 **Mapping & Data:**
@@ -227,13 +249,96 @@ src/
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Getting Started
+
+1. **Fork the repository**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/ta-qso-logger.git
+   cd ta-qso-logger
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up your database**
+   - Install PostgreSQL 14+
+   - Create a database: `createdb qso_logger`
+   - Copy `.env.example` to `.env.local` and configure DATABASE_URL
+   - Run migrations: `npx prisma migrate deploy`
+   - Generate Prisma Client: `npx prisma generate`
+
+4. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+### Development Workflow
+
+1. **Create a feature branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make your changes**
+   - Write clean, readable code
+   - Follow existing code style and patterns
+   - Add comments for complex logic
+
+3. **Test your changes**
+   - Run type check: `npm run type-check`
+   - Run linting: `npm run lint`
+   - Build the project: `npm run build`
+   - Test functionality manually in the browser
+
+4. **Commit your changes**
+   ```bash
+   git add .
+   git commit -m "Brief description of your changes"
+   ```
+
+5. **Push and create a Pull Request**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+   Then open a Pull Request on GitHub with a clear description of your changes.
+
+### Code Style Guidelines
+
+- Use TypeScript for type safety
+- Follow existing component patterns (shadcn/ui components)
+- Use meaningful variable and function names
+- Keep functions small and focused
+- Add proper error handling
+- Comment complex logic
+
+### Database Changes
+
+If your changes require database schema updates:
+
+1. Modify `prisma/schema.prisma`
+2. Create migration: `npx prisma migrate dev --name your_migration_name`
+3. Test migration thoroughly
+4. Include migration files in your PR
+
+### Reporting Issues
+
+Found a bug or have a feature request?
+
+1. Check existing issues first
+2. Create a new issue with:
+   - Clear title and description
+   - Steps to reproduce (for bugs)
+   - Expected vs actual behavior
+   - Screenshots if applicable
+   - Your environment (OS, browser, Node version)
+
+### Questions?
+
+Feel free to open a discussion or issue if you need help!
 
 ## License
 
@@ -244,6 +349,7 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 - Amateur radio community for ADIF specifications
 - [shadcn/ui](https://ui.shadcn.com/) for the beautiful component library
 - [Radix UI](https://www.radix-ui.com/) for accessible UI primitives
+- [Prisma](https://www.prisma.io/) for the excellent ORM
 - [Leaflet](https://leafletjs.com/) for mapping capabilities
 - [OpenStreetMap](https://www.openstreetmap.org/) contributors for map tiles and Nominatim API
 - [TanStack Table](https://tanstack.com/table) for advanced table functionality

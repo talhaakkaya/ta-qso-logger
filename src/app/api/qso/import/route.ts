@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import connectToDatabase from "@/lib/mongodb";
-import QSO from "@/models/QSO";
+import { prisma } from "@/lib/prisma";
+import { getUserDefaultLogbookId } from "@/lib/user-helpers";
 import adifService from "@/services/adifService";
 
 // POST /api/qso/import - Import QSO records from ADIF file
@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
+    const requestedLogbookId = formData.get("logbookId") as string | null;
 
     if (!file) {
       return NextResponse.json(
@@ -43,28 +44,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Connect to database
-    await connectToDatabase();
+    // Use provided logbookId or get user's default logbook
+    const logbookId = requestedLogbookId || await getUserDefaultLogbookId({
+      email: session.user.email,
+      name: session.user.name,
+    });
 
-    // Fetch existing QSO records for this user to check for duplicates
-    const existingRecords = await QSO.find({ userId: session.user.email });
+    // Fetch existing QSO records for this user's logbook to check for duplicates
+    const existingRecords = await prisma.qso.findMany({
+      where: { logbookId },
+    });
 
     // Helper function to check if record is duplicate
     // Only checks callsign, frequency, and datetime
     const isDuplicate = (record: any) => {
       return existingRecords.some((existing) => {
         // Convert both datetimes to ISO strings for comparison
-        const existingDate = new Date(existing.datetime).toISOString();
+        const existingDate = new Date(existing.qsoDate).toISOString();
         const recordDate = new Date(record.datetime).toISOString();
 
         // Compare case-insensitively for callsign
+        const existingFreq = existing.freq ? parseFloat(existing.freq.toString()) : 0;
+        const recordFreq = record.freq ? parseFloat(record.freq) : 0;
+
         return existingDate === recordDate &&
           existing.callsign.toUpperCase() === record.callsign.toUpperCase() &&
-          existing.freq === record.freq;
+          existingFreq === recordFreq;
       });
     };
 
-    // Save records to database with user's email
+    // Save records to database with user's logbook
     const savedRecords = [];
     const failedRecords = [];
     let skippedDuplicates = 0;
@@ -88,33 +97,34 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        const qso = new QSO({
-          userId: session.user.email,
-          datetime: record.datetime,
-          callsign: record.callsign,
-          name: record.name,
-          freq: record.freq,
-          mode: record.mode,
-          txPower: record.txPower,
-          rstSent: record.rstSent,
-          rstReceived: record.rstReceived,
-          qth: record.qth,
-          notes: record.notes,
+        const qso = await prisma.qso.create({
+          data: {
+            logbookId,
+            qsoDate: new Date(record.datetime),
+            callsign: record.callsign,
+            name: record.name || null,
+            freq: record.freq || null,
+            mode: record.mode || null,
+            txPwr: record.txPower || null,
+            rstSent: record.rstSent || null,
+            rstRcvd: record.rstReceived || null,
+            qth: record.qth || null,
+            notes: record.notes || null,
+          },
         });
 
-        await qso.save();
         savedRecords.push({
-          id: qso._id.toString(),
-          datetime: qso.datetime,
+          id: qso.id,
+          datetime: qso.qsoDate.toISOString(),
           callsign: qso.callsign,
-          name: qso.name,
-          freq: qso.freq,
-          mode: qso.mode,
-          txPower: qso.txPower,
-          rstSent: qso.rstSent,
-          rstReceived: qso.rstReceived,
-          qth: qso.qth,
-          notes: qso.notes,
+          name: qso.name || "",
+          freq: qso.freq ? parseFloat(qso.freq.toString()) : 0,
+          mode: qso.mode || "",
+          txPower: qso.txPwr || 0,
+          rstSent: qso.rstSent || "",
+          rstReceived: qso.rstRcvd || "",
+          qth: qso.qth || "",
+          notes: qso.notes || "",
         });
       } catch (error) {
         console.error("Failed to save QSO record:", error);

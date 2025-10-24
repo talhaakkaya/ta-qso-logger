@@ -1,19 +1,14 @@
 import { NextResponse } from "next/server";
-import connectToDatabase from "@/lib/mongodb";
-import QSO from "@/models/QSO";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/stats - Get public statistics (no auth required)
 export async function GET() {
   try {
-    // Connect to database
-    await connectToDatabase();
-
     // Get total number of QSO records
-    const totalQSOs = await QSO.countDocuments();
+    const totalQSOs = await prisma.qso.count();
 
-    // Get total unique users
-    const uniqueUsers = await QSO.distinct("userId");
-    const totalUsers = uniqueUsers.length;
+    // Get total number of profiles (users)
+    const totalUsers = await prisma.profile.count();
 
     return NextResponse.json(
       {

@@ -41,3 +41,10 @@ export interface CSVExportData {
   content: string;
   date: Date;
 }
+
+export interface Logbook {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  qsoCount: number;
+}

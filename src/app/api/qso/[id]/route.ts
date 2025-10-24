@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import connectToDatabase from "@/lib/mongodb";
-import QSO from "@/models/QSO";
+import { prisma } from "@/lib/prisma";
+import { getUserDefaultLogbookId } from "@/lib/user-helpers";
+
+// Helper function to parse datetime ensuring UTC interpretation
+const parseDatetimeAsUTC = (datetime: string): Date => {
+  // If already has timezone indicator, use as-is
+  if (datetime.includes('Z') || datetime.includes('+') || datetime.match(/-\d{2}:\d{2}$/)) {
+    return new Date(datetime);
+  }
+  // Otherwise, append 'Z' to force UTC interpretation
+  return new Date(datetime + 'Z');
+};
 
 // PUT /api/qso/[id] - Update a QSO record
 export async function PUT(
@@ -17,37 +27,62 @@ export async function PUT(
     const { id } = await params;
     const updates = await request.json();
 
-    await connectToDatabase();
+    // First, verify the QSO exists and belongs to the user
+    const existingQSO = await prisma.qso.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      include: {
+        logbook: {
+          include: {
+            profile: true,
+          },
+        },
+      },
+    });
 
-    const updatedQSO = await QSO.findOneAndUpdate(
-      { _id: id, userId: session.user.email, deletedAt: null },
-      updates,
-      { new: true },
-    );
-
-    if (!updatedQSO) {
+    if (!existingQSO || existingQSO.logbook.profile.email !== session.user.email) {
       return NextResponse.json(
         { error: "QSO record not found" },
         { status: 404 },
       );
     }
 
-    // Transform to match frontend format
-    const record = {
-      id: updatedQSO._id.toString(),
-      datetime: updatedQSO.datetime,
-      callsign: updatedQSO.callsign,
-      name: updatedQSO.name,
-      freq: updatedQSO.freq,
-      mode: updatedQSO.mode,
-      txPower: updatedQSO.txPower,
-      rstSent: updatedQSO.rstSent,
-      rstReceived: updatedQSO.rstReceived,
-      qth: updatedQSO.qth,
-      notes: updatedQSO.notes,
-    };
+    // Prepare update data with type conversions
+    const updateData: any = {};
+    if (updates.datetime) updateData.qsoDate = parseDatetimeAsUTC(updates.datetime);
+    if (updates.callsign !== undefined) updateData.callsign = updates.callsign;
+    if (updates.name !== undefined) updateData.name = updates.name || null;
+    if (updates.freq !== undefined) updateData.freq = updates.freq ? parseFloat(updates.freq) : null;
+    if (updates.mode !== undefined) updateData.mode = updates.mode || null;
+    if (updates.txPower !== undefined) updateData.txPwr = updates.txPower ? parseInt(updates.txPower) : null;
+    if (updates.rstSent !== undefined) updateData.rstSent = updates.rstSent || null;
+    if (updates.rstReceived !== undefined) updateData.rstRcvd = updates.rstReceived || null;
+    if (updates.qth !== undefined) updateData.qth = updates.qth || null;
+    if (updates.notes !== undefined) updateData.notes = updates.notes || null;
 
-    return NextResponse.json(record);
+    const updatedQSO = await prisma.qso.update({
+      where: {
+        id,
+      },
+      data: updateData,
+    });
+
+    // Transform to match frontend format
+    return NextResponse.json({
+      id: updatedQSO.id,
+      datetime: updatedQSO.qsoDate,
+      callsign: updatedQSO.callsign,
+      name: updatedQSO.name || "",
+      freq: updatedQSO.freq ? parseFloat(updatedQSO.freq.toString()) : 0,
+      mode: updatedQSO.mode || "",
+      txPower: updatedQSO.txPwr || 0,
+      rstSent: updatedQSO.rstSent || "",
+      rstReceived: updatedQSO.rstRcvd || "",
+      qth: updatedQSO.qth || "",
+      notes: updatedQSO.notes || "",
+    });
   } catch (error) {
     console.error("Error updating QSO record:", error);
     return NextResponse.json(
@@ -70,26 +105,37 @@ export async function DELETE(
 
     const { id } = await params;
 
-    await connectToDatabase();
-
-    const deletedQSO = await QSO.findOneAndUpdate(
-      {
-        _id: id,
-        userId: session.user.email,
+    // First, verify the QSO exists and belongs to the user
+    const existingQSO = await prisma.qso.findFirst({
+      where: {
+        id,
         deletedAt: null,
       },
-      {
-        deletedAt: new Date(),
+      include: {
+        logbook: {
+          include: {
+            profile: true,
+          },
+        },
       },
-      { new: true },
-    );
+    });
 
-    if (!deletedQSO) {
+    if (!existingQSO || existingQSO.logbook.profile.email !== session.user.email) {
       return NextResponse.json(
         { error: "QSO record not found" },
         { status: 404 },
       );
     }
+
+    // Soft delete the QSO
+    await prisma.qso.update({
+      where: {
+        id,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
 
     return NextResponse.json({ message: "QSO record deleted" });
   } catch (error) {

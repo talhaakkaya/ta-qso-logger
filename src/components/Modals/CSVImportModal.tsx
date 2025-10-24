@@ -23,7 +23,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/useToast";
 import { useQSO } from "@/contexts/QSOContext";
 import csvService from "@/services/csvService";
-import { FileSpreadsheet, Info, CheckCircle, XCircle, Loader2, ArrowRight } from "lucide-react";
+import { FileSpreadsheet, Info, CheckCircle, XCircle, Loader2, ArrowRight, BookOpen } from "lucide-react";
 
 interface CSVImportModalProps {
   show: boolean;
@@ -68,9 +68,10 @@ const QSO_FIELDS: { value: QSOField; label: string }[] = [
 
 const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
   const { showToast } = useToast();
-  const { importFromCSV } = useQSO();
+  const { importFromCSV, logbooks, currentLogbook, setCurrentLogbook } = useQSO();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedLogbookId, setSelectedLogbookId] = useState<string>("");
   const [parsedData, setParsedData] = useState<ParsedCSV | null>(null);
   const [columnMapping, setColumnMapping] = useState<Record<string, QSOField>>({});
   const [isImporting, setIsImporting] = useState(false);
@@ -81,6 +82,13 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
     errorMessages?: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize selected logbook when modal opens
+  React.useEffect(() => {
+    if (show && currentLogbook && !selectedLogbookId) {
+      setSelectedLogbookId(currentLogbook.id);
+    }
+  }, [show, currentLogbook, selectedLogbookId]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -133,6 +141,11 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
   const handleImport = async () => {
     if (!parsedData) return;
 
+    if (!selectedLogbookId) {
+      showToast("Lütfen bir logbook seçin", "warning");
+      return;
+    }
+
     // Validate required fields are mapped using CSV service
     const validation = csvService.validateCSVMapping(columnMapping);
     if (!validation.valid) {
@@ -144,7 +157,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
     setStep(3);
 
     try {
-      const result = await importFromCSV(parsedData, columnMapping);
+      const result = await importFromCSV(parsedData, columnMapping, selectedLogbookId);
       setImportResult(result);
 
       if (result.success) {
@@ -156,6 +169,11 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
             message += `, ${result.errors} kayıt atlandı`;
           }
           showToast(message, "success");
+
+          // Switch to the imported logbook if it's different from current
+          if (selectedLogbookId && selectedLogbookId !== currentLogbook?.id) {
+            await setCurrentLogbook(selectedLogbookId);
+          }
 
           setTimeout(() => {
             handleClose();
@@ -181,6 +199,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
   const handleClose = () => {
     setStep(1);
     setSelectedFile(null);
+    setSelectedLogbookId("");
     setParsedData(null);
     setColumnMapping({});
     setImportResult(null);
@@ -223,6 +242,36 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
                 />
                 <p className="text-sm text-muted-foreground">
                   Desteklenen format: .csv (UTF-8 kodlamalı)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Hedef Logbook</Label>
+                <Select
+                  value={selectedLogbookId}
+                  onValueChange={setSelectedLogbookId}
+                >
+                  <SelectTrigger className="w-full">
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      <SelectValue placeholder="Logbook seçin" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {logbooks.map((logbook) => (
+                      <SelectItem key={logbook.id} value={logbook.id}>
+                        <div className="flex items-center justify-between w-full gap-2">
+                          <span>{logbook.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            ({logbook.qsoCount} QSO)
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  QSO kayıtları bu logbook&apos;a aktarılacak
                 </p>
               </div>
 

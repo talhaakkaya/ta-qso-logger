@@ -27,14 +27,16 @@ class ApiService {
   }
 
   // QSO Records API
-  async getQSORecords(): Promise<QSORecord[]> {
-    return await this.request<QSORecord[]>("/qso");
+  async getQSORecords(logbookId?: string): Promise<QSORecord[]> {
+    const url = logbookId ? `/qso?logbookId=${logbookId}` : "/qso";
+    return await this.request<QSORecord[]>(url);
   }
 
-  async createQSORecord(record: Omit<QSORecord, "id">): Promise<QSORecord> {
+  async createQSORecord(record: Omit<QSORecord, "id">, logbookId?: string): Promise<QSORecord> {
+    const data = logbookId ? { ...record, logbookId } : record;
     return await this.request<QSORecord>("/qso", {
       method: "POST",
-      body: JSON.stringify(record),
+      body: JSON.stringify(data),
     });
   }
 
@@ -56,8 +58,12 @@ class ApiService {
 
   // Export API
 
-  async exportQSORecords(): Promise<Blob> {
-    const response = await fetch("/api/qso/export", {
+  async exportQSORecords(logbookId?: string): Promise<Blob> {
+    const url = logbookId
+      ? `/api/qso/export?logbookId=${logbookId}`
+      : "/api/qso/export";
+
+    const response = await fetch(url, {
       method: "GET",
     });
 
@@ -70,9 +76,12 @@ class ApiService {
 
   // Import API
 
-  async importQSORecords(file: File): Promise<ImportResult & { records: QSORecord[] }> {
+  async importQSORecords(file: File, logbookId?: string): Promise<ImportResult & { records: QSORecord[] }> {
     const formData = new FormData();
     formData.append("file", file);
+    if (logbookId) {
+      formData.append("logbookId", logbookId);
+    }
 
     const response = await fetch("/api/qso/import", {
       method: "POST",

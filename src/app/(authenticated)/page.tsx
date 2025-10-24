@@ -15,6 +15,7 @@ import SettingsModal from "@/components/Modals/SettingsModal";
 import ImportModal from "@/components/Modals/ImportModal";
 import CSVImportModal from "@/components/Modals/CSVImportModal";
 import QSOMapModal from "@/components/Modals/QSOMapModal";
+import CreateLogbookModal from "@/components/Modals/CreateLogbookModal";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 
@@ -26,6 +27,7 @@ export default function HomePage() {
   const [showImport, setShowImport] = React.useState(false);
   const [showCSVImport, setShowCSVImport] = React.useState(false);
   const [showQSOMap, setShowQSOMap] = React.useState(false);
+  const [showCreateLogbook, setShowCreateLogbook] = React.useState(false);
 
   React.useEffect(() => {
     if (status === "unauthenticated") {
@@ -53,6 +55,7 @@ export default function HomePage() {
         onShowCSVImport={() => setShowCSVImport(true)}
         onShowQSOMap={() => setShowQSOMap(true)}
         onShowQCodes={() => setShowQCodeModal(true)}
+        onShowCreateLogbook={() => setShowCreateLogbook(true)}
       />
       <SidebarInset>
         <Header />
@@ -83,6 +86,10 @@ export default function HomePage() {
       <QSOMapModal
         show={showQSOMap}
         onHide={() => setShowQSOMap(false)}
+      />
+      <CreateLogbookModal
+        show={showCreateLogbook}
+        onHide={() => setShowCreateLogbook(false)}
       />
 
       <Toaster position="top-right" richColors />

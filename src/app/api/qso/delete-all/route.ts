@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import connectToDatabase from "@/lib/mongodb";
-import QSO from "@/models/QSO";
+import { prisma } from "@/lib/prisma";
+import { getUserDefaultLogbookId } from "@/lib/user-helpers";
 
 // DELETE /api/qso/delete-all - Delete all QSO records for the authenticated user
 export async function DELETE(request: NextRequest) {
@@ -11,16 +11,32 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Connect to database
-    await connectToDatabase();
+    // Get user's profile
+    const profile = await prisma.profile.findUnique({
+      where: { email: session.user.email },
+      include: {
+        logbooks: true,
+      },
+    });
 
-    // Delete all QSO records for this user
-    const result = await QSO.deleteMany({ userId: session.user.email });
+    if (!profile) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    }
+
+    // Get all logbook IDs for this user
+    const logbookIds = profile.logbooks.map((lb) => lb.id);
+
+    // Delete all QSO records for all user's logbooks (hard delete, not soft)
+    const result = await prisma.qso.deleteMany({
+      where: {
+        logbookId: { in: logbookIds },
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      deletedCount: result.deletedCount,
-      message: `${result.deletedCount} QSO kaydı silindi`,
+      deletedCount: result.count,
+      message: `${result.count} QSO kaydı silindi`,
     });
   } catch (error) {
     console.error("Error deleting QSO records:", error);

@@ -9,10 +9,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/useToast";
 import { useQSO } from "@/contexts/QSOContext";
-import { Upload, Info, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Upload, Info, CheckCircle, XCircle, Loader2, BookOpen } from "lucide-react";
 
 interface ImportModalProps {
   show: boolean;
@@ -21,8 +28,9 @@ interface ImportModalProps {
 
 const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
   const { showToast } = useToast();
-  const { importFromADIF } = useQSO();
+  const { importFromADIF, logbooks, currentLogbook, setCurrentLogbook } = useQSO();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedLogbookId, setSelectedLogbookId] = useState<string>("");
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<{
     success: boolean;
@@ -31,6 +39,13 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
     errorMessages?: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize selected logbook when modal opens
+  React.useEffect(() => {
+    if (show && currentLogbook && !selectedLogbookId) {
+      setSelectedLogbookId(currentLogbook.id);
+    }
+  }, [show, currentLogbook, selectedLogbookId]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,9 +66,14 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
       return;
     }
 
+    if (!selectedLogbookId) {
+      showToast("Lütfen bir logbook seçin", "warning");
+      return;
+    }
+
     setIsImporting(true);
     try {
-      const result = await importFromADIF(selectedFile);
+      const result = await importFromADIF(selectedFile, selectedLogbookId);
       setImportResult(result);
 
       if (result.success) {
@@ -72,6 +92,11 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
             message += `. ${result.errorMessages.join(", ")}`;
           }
           showToast(message, "success");
+
+          // Switch to the imported logbook if it's different from current
+          if (selectedLogbookId && selectedLogbookId !== currentLogbook?.id) {
+            await setCurrentLogbook(selectedLogbookId);
+          }
         }
 
         // Close modal after successful import
@@ -97,6 +122,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
 
   const handleClose = () => {
     setSelectedFile(null);
+    setSelectedLogbookId("");
     setImportResult(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -125,6 +151,37 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
             />
             <p className="text-sm text-muted-foreground">
               Desteklenen formatlar: .adi, .adif (ADIF 3.1.4)
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Hedef Logbook</Label>
+            <Select
+              value={selectedLogbookId}
+              onValueChange={setSelectedLogbookId}
+              disabled={isImporting}
+            >
+              <SelectTrigger className="w-full">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  <SelectValue placeholder="Logbook seçin" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {logbooks.map((logbook) => (
+                  <SelectItem key={logbook.id} value={logbook.id}>
+                    <div className="flex items-center justify-between w-full gap-2">
+                      <span>{logbook.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        ({logbook.qsoCount} QSO)
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              QSO kayıtları bu logbook&apos;a aktarılacak
             </p>
           </div>
 
@@ -177,7 +234,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
           </Button>
           <Button
             onClick={handleImport}
-            disabled={!selectedFile || isImporting}
+            disabled={!selectedFile || !selectedLogbookId || isImporting}
           >
             {isImporting ? (
               <>

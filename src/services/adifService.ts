@@ -114,7 +114,7 @@ class ADIFService {
   /**
    * Export QSO records to ADIF format
    */
-  exportToADIF(records: QSORecord[]): { filename: string; blob: Blob } {
+  exportToADIF(records: QSORecord[], logbookName?: string): { filename: string; blob: Blob } {
     const stationCallsign = getStationCallsign();
     const now = new Date();
     const createdDate = now.toISOString().split("T")[0];
@@ -175,7 +175,13 @@ class ADIFService {
     });
 
     const blob = new Blob([adif], { type: "text/plain;charset=utf-8" });
-    const filename = `qso-export-${new Date().toISOString().split("T")[0]}.adi`;
+
+    // Include logbook name in filename
+    const sanitizedLogbookName = (logbookName || 'QSO')
+      .replace(/[^a-zA-Z0-9-]/g, '-')
+      .replace(/-+/g, '-');
+    const dateStr = new Date().toISOString().split("T")[0];
+    const filename = `qso-export-${sanitizedLogbookName}-${dateStr}.adi`;
 
     return { filename, blob };
   }
@@ -346,8 +352,8 @@ class ADIFService {
   /**
    * Download ADIF file
    */
-  downloadADIF(records: QSORecord[]): void {
-    const { filename, blob } = this.exportToADIF(records);
+  downloadADIF(records: QSORecord[], logbookName?: string): void {
+    const { filename, blob } = this.exportToADIF(records, logbookName);
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
 
