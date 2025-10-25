@@ -20,12 +20,13 @@ import {
 } from "@/components/ui/select";
 import { QSORecord } from "@/types";
 import { formatDateTimeForInput, getCurrentDateTimeString } from "@/utils/dateUtils";
-import { getDefaultTxPower, getStoredTimezone, formatDateTimeForDisplay, getStationCallsign } from "@/utils/settingsUtils";
+import { formatDateTimeForDisplay } from "@/utils/settingsUtils";
 import { coordinatesToGridSquare, gridSquareToCoordinates } from "@/utils/gridSquareUtils";
 import { useToast } from "@/hooks/useToast";
 import { useUserMode } from "@/hooks/useUserMode";
 import { useLocationSearch } from "@/hooks/useLocationSearch";
 import { useQSO } from "@/contexts/QSOContext";
+import { useSettings } from "@/hooks/useQSOQueries";
 import locationService from "@/services/locationService";
 import apiService from "@/services/apiService";
 import { Search, MapPin, Loader2, Check, Pencil, Plus, Clock, ExternalLink } from "lucide-react";
@@ -53,9 +54,10 @@ const QSOModal: React.FC<QSOModalProps> = ({
   onSave,
 }) => {
   const { showToast } = useToast();
-  const { stationGridSquare } = useQSO();
+  const { stationCallsign, stationGridSquare } = useQSO();
   const userMode = useUserMode();
   const locationSearch = useLocationSearch();
+  const { data: settingsData } = useSettings();
 
   const [formData, setFormData] = useState<Omit<QSORecord, "id">>({
     datetime: "",
@@ -63,7 +65,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
     name: "",
     freq: 0,
     mode: "FM",
-    txPower: getDefaultTxPower(),
+    txPower: settingsData?.defaultTxPower ?? 5,
     rstSent: "",
     rstReceived: "",
     qth: "",
@@ -142,7 +144,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
           name: "",
           freq: 0,
           mode: "FM",
-          txPower: getDefaultTxPower(),
+          txPower: settingsData?.defaultTxPower ?? 5,
           rstSent: "",
           rstReceived: "",
           qth: "",
@@ -319,7 +321,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
           id: "1",
           lat: stationCoords.lat,
           lon: stationCoords.lon,
-          name: getStationCallsign() || "My Station",
+          name: stationCallsign || "My Station",
           height: 10
         },
         {
@@ -461,10 +463,10 @@ const QSOModal: React.FC<QSOModalProps> = ({
               {errors.datetime && (
                 <p className="text-sm text-destructive">{errors.datetime}</p>
               )}
-              {formData.datetime && (
+              {formData.datetime && settingsData && (
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {getStoredTimezone().label}: {formatDateTimeForDisplay(formData.datetime)}
+                  {settingsData.timezone.label}: {formatDateTimeForDisplay(formData.datetime)}
                 </p>
               )}
             </div>

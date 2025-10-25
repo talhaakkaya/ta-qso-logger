@@ -81,45 +81,35 @@ export const saveTimezone = (timezone: string): void => {
 };
 
 /**
- * Get the stored station callsign from localStorage
- * Returns empty string if not set
+ * @deprecated Callsign is now stored in database via Profile.
+ * Use profileData.callsign from useProfile() hook instead.
  */
 export const getStationCallsign = (): string => {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  return localStorage.getItem(STATION_CALLSIGN_KEY) || "";
+  return "";
 };
 
 /**
- * Save station callsign to localStorage
+ * @deprecated Callsign is now stored in database via Profile.
+ * Use updateProfileMutation from useUpdateProfile() hook instead.
  */
 export const saveStationCallsign = (callsign: string): void => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(STATION_CALLSIGN_KEY, callsign.toUpperCase().trim());
-  }
+  // No-op: callsign should be saved via database mutation
 };
 
 /**
- * Get the stored grid square from localStorage
- * Returns empty string if not set
+ * @deprecated Grid square is now stored in database via Profile.
+ * Use profileData.gridSquare from useProfile() hook instead.
  */
 export const getGridSquare = (): string => {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  return localStorage.getItem(GRID_SQUARE_KEY) || "";
+  return "";
 };
 
 /**
- * Save grid square to localStorage
+ * @deprecated Grid square is now stored in database via Profile.
+ * Use updateProfileMutation from useUpdateProfile() hook instead.
  */
 export const saveGridSquare = (gridSquare: string): void => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(GRID_SQUARE_KEY, gridSquare.toUpperCase().trim());
-  }
+  // No-op: grid square should be saved via database mutation
 };
 
 /**
@@ -194,31 +184,28 @@ export const isAdvancedMode = (): boolean => {
 };
 
 /**
- * Get all user settings
+ * Get all user settings (UI preferences only)
+ * Note: Callsign and gridSquare should be retrieved from Profile via useProfile() hook
  */
 export const getUserSettings = (): UserSettings => {
   return {
     timezone: getStoredTimezone(),
-    stationCallsign: getStationCallsign(),
-    gridSquare: getGridSquare(),
+    stationCallsign: "", // Deprecated: use profileData.callsign instead
+    gridSquare: "", // Deprecated: use profileData.gridSquare instead
     defaultTxPower: getDefaultTxPower(),
     mode: getUserMode(),
   };
 };
 
 /**
- * Save all user settings
+ * Save user settings (UI preferences only)
+ * Note: Callsign and gridSquare should be saved via updateProfileMutation hook
  */
 export const saveUserSettings = (settings: Partial<UserSettings>): void => {
   if (settings.timezone) {
     saveTimezone(settings.timezone.value);
   }
-  if (settings.stationCallsign !== undefined) {
-    saveStationCallsign(settings.stationCallsign);
-  }
-  if (settings.gridSquare !== undefined) {
-    saveGridSquare(settings.gridSquare);
-  }
+  // stationCallsign and gridSquare are ignored - use updateProfileMutation instead
   if (settings.defaultTxPower !== undefined) {
     saveDefaultTxPower(settings.defaultTxPower);
   }

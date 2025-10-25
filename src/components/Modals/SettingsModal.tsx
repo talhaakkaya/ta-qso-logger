@@ -19,11 +19,9 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/useToast";
 import { useQSO } from "@/contexts/QSOContext";
-import { useProfile, useUpdateProfile } from "@/hooks/useQSOQueries";
+import { useProfile, useUpdateProfile, useSettings, useUpdateSettings } from "@/hooks/useQSOQueries";
 import {
   TIMEZONE_OPTIONS,
-  getUserSettings,
-  saveUserSettings,
   UserSettings,
 } from "@/utils/settingsUtils";
 import { Settings, Trash2, Check, Loader2 } from "lucide-react";
@@ -37,7 +35,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
   const { showToast } = useToast();
   const { deleteAllQSORecords } = useQSO();
   const { data: profileData } = useProfile();
+  const { data: settingsData } = useSettings();
   const updateProfileMutation = useUpdateProfile();
+  const updateSettingsMutation = useUpdateSettings();
   const [settings, setSettings] = useState<UserSettings>({
     timezone: TIMEZONE_OPTIONS[0],
     stationCallsign: "",
@@ -51,27 +51,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
 
   // Load current settings when modal opens
   useEffect(() => {
-    if (show) {
-      // Load localStorage settings
-      const currentSettings = getUserSettings();
-
-      // Override with cached profile data
-      if (profileData) {
-        currentSettings.stationCallsign = profileData.callsign || "";
-        currentSettings.gridSquare = profileData.gridSquare || "";
-      }
+    if (show && settingsData) {
+      const currentSettings: UserSettings = {
+        timezone: settingsData.timezone,
+        stationCallsign: profileData?.callsign || "",
+        gridSquare: profileData?.gridSquare || "",
+        defaultTxPower: settingsData.defaultTxPower,
+        mode: settingsData.mode,
+      };
 
       setSettings(currentSettings);
     }
-  }, [show, profileData]);
+  }, [show, profileData, settingsData]);
 
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      // Save to localStorage
-      saveUserSettings(settings);
+      // Save UI-only settings using mutation (will invalidate cache and trigger re-renders)
+      await updateSettingsMutation.mutateAsync({
+        timezone: settings.timezone,
+        defaultTxPower: settings.defaultTxPower,
+        mode: settings.mode,
+      });
 
       // Save callsign and grid square to database using mutation
+      // This will automatically invalidate cache and update all components
       await updateProfileMutation.mutateAsync({
         callsign: settings.stationCallsign,
         gridSquare: settings.gridSquare,
@@ -79,9 +83,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
 
       showToast("Ayarlar kaydedildi", "success");
       onHide();
-
-      // Always reload page to update UI
-      window.location.reload();
     } catch (error) {
       console.error("Failed to save settings:", error);
       showToast("Ayarlar kaydedilirken hata oluştu", "error");
@@ -102,8 +103,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
       showToast(`${deletedCount} QSO kaydı silindi`, "success");
       setShowDeleteConfirm(false);
       onHide();
-      // Reload page to refresh all data
-      window.location.reload();
     } catch (error) {
       console.error("Failed to delete all QSO records:", error);
       showToast("QSO kayıtları silinirken hata oluştu", "error");

@@ -34,6 +34,7 @@ interface QSOContextType {
   isLoading: boolean;
 
   // User Profile
+  stationCallsign: string;
   stationGridSquare: string;
   loadUserProfile: () => Promise<void>;
 
@@ -125,6 +126,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
   const isLoading = logbooksLoading || qsosLoading;
 
   // User profile data
+  const stationCallsign = profileData?.callsign || "";
   const stationGridSquare = profileData?.gridSquare || "";
 
   // Logbooks list
@@ -267,10 +269,10 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
         "Failed to export via API, falling back to local export:",
         error,
       );
-      // Fallback to local ADIF export with logbook name
-      adifService.downloadADIF(qsoRecords, currentLogbook?.name);
+      // Fallback to local ADIF export with logbook name and station callsign
+      adifService.downloadADIF(qsoRecords, currentLogbook?.name, profileData?.callsign);
     }
-  }, [qsoRecords, currentLogbook]);
+  }, [qsoRecords, currentLogbook, profileData]);
 
   const importFromADIF = useCallback(
     async (file: File, logbookId?: string): Promise<ImportResult> => {
@@ -344,6 +346,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
     qsoRecords,
     filteredRecords,
     isLoading,
+    stationCallsign,
     stationGridSquare,
     loadUserProfile,
     logbooks,

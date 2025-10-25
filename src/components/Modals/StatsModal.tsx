@@ -139,12 +139,12 @@ const StatsModal: React.FC<StatsModalProps> = ({ show, onHide }) => {
         ) : (
           <div className="space-y-6 py-4">
             {/* Summary Stats */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>Toplam Kullanıcı</span>
                 </div>
-                <div className="text-2xl font-bold">
+                <div className="text-xl sm:text-2xl font-bold">
                   {stats?.totalUsers.toLocaleString("tr-TR")}
                 </div>
               </div>
@@ -152,7 +152,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ show, onHide }) => {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>Toplam QSO</span>
                 </div>
-                <div className="text-2xl font-bold">
+                <div className="text-xl sm:text-2xl font-bold">
                   {stats?.totalQSOs.toLocaleString("tr-TR")}
                 </div>
               </div>
@@ -161,7 +161,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ show, onHide }) => {
             {/* Chart */}
             <div className="space-y-2">
               <h3 className="font-semibold text-sm">En Aktif 10 Frekans</h3>
-              <div style={{ height: "500px" }}>
+              <div className="h-[300px] sm:h-[400px] md:h-[500px]">
                 <Bar data={chartData} options={chartOptions} />
               </div>
             </div>

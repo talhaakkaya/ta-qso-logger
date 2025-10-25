@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useQSO } from "@/contexts/QSOContext";
 import { useToast } from "@/hooks/useToast";
+import { useUserMode } from "@/hooks/useUserMode";
 import SettingsModal from "@/components/Modals/SettingsModal";
 import ImportModal from "@/components/Modals/ImportModal";
 import QSOMapModal from "@/components/Modals/QSOMapModal";
-import { getUserMode } from "@/utils/settingsUtils";
 import { Download, Upload, Map, Settings, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,16 +16,11 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ onShowQCodes }) => {
   const { qsoRecords, exportToADIF } = useQSO();
   const { showToast } = useToast();
+  const userMode = useUserMode();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showQSOMap, setShowQSOMap] = useState(false);
-  const [userMode, setUserMode] = useState<'simple' | 'advanced'>('simple');
-
-  // Load user mode
-  useEffect(() => {
-    setUserMode(getUserMode());
-  }, []);
 
   // Auto-collapse on mobile
   useEffect(() => {

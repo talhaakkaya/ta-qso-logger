@@ -28,6 +28,12 @@ export async function GET(request: NextRequest) {
       select: { name: true },
     });
 
+    // Get user's profile for station callsign
+    const profile = await prisma.profile.findUnique({
+      where: { email: session.user.email },
+      select: { callsign: true },
+    });
+
     const qsos = await prisma.qso.findMany({
       where: {
         logbookId,
@@ -53,7 +59,7 @@ export async function GET(request: NextRequest) {
       notes: qso.notes || "",
     }));
 
-    const { blob } = adifService.exportToADIF(records);
+    const { blob } = adifService.exportToADIF(records, logbook?.name, profile?.callsign || undefined);
     const adifContent = await blob.text();
 
     // Include logbook name in filename

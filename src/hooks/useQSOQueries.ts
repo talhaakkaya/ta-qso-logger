@@ -16,6 +16,7 @@ export const qsoKeys = {
     [...qsoKeys.lists(), { logbookId }] as const,
   logbooks: ["logbooks"] as const,
   profile: ["profile"] as const,
+  settings: ["settings"] as const,
 };
 
 /**
@@ -25,7 +26,6 @@ export function useQSOs(logbookId?: string) {
   return useQuery({
     queryKey: qsoKeys.list(logbookId),
     queryFn: () => apiService.getQSORecords(logbookId),
-    staleTime: 60 * 1000, // 1 minute
   });
 }
 
@@ -192,7 +192,6 @@ export function useLogbooks() {
   return useQuery({
     queryKey: qsoKeys.logbooks,
     queryFn: () => apiService.getLogbooks(),
-    staleTime: 5 * 60 * 1000, // 5 minutes (logbooks change rarely)
   });
 }
 
@@ -218,7 +217,6 @@ export function useProfile() {
   return useQuery({
     queryKey: qsoKeys.profile,
     queryFn: () => apiService.getProfile(),
-    staleTime: 10 * 60 * 1000, // 10 minutes (profile changes rarely)
   });
 }
 
@@ -231,9 +229,9 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (updates: { callsign?: string; name?: string; gridSquare?: string }) =>
       apiService.updateProfile(updates),
-    onSuccess: (updatedProfile) => {
-      // Update cache with new profile data
-      queryClient.setQueryData(qsoKeys.profile, updatedProfile);
+    onSuccess: () => {
+      // Invalidate to force refetch and update localStorage cache
+      queryClient.invalidateQueries({ queryKey: qsoKeys.profile });
     },
   });
 }
@@ -251,6 +249,71 @@ export function useImportQSOs(logbookId?: string) {
       queryClient.invalidateQueries({ queryKey: qsoKeys.list(logbookId) });
       // Invalidate logbooks to update QSO counts
       queryClient.invalidateQueries({ queryKey: qsoKeys.logbooks });
+    },
+  });
+}
+
+/**
+ * Fetch UI settings from localStorage
+ * Makes settings reactive - components re-render when settings change
+ */
+export function useSettings() {
+  return useQuery({
+    queryKey: qsoKeys.settings,
+    queryFn: async () => {
+      if (typeof window === "undefined") {
+        return {
+          timezone: { value: "UTC", label: "UTC (Coordinated Universal Time)", offset: 0 },
+          defaultTxPower: 5,
+          mode: "simple" as const,
+        };
+      }
+
+      // Dynamically import to avoid SSR issues
+      const { getStoredTimezone, getDefaultTxPower, getUserMode } = await import("@/utils/settingsUtils");
+
+      return {
+        timezone: getStoredTimezone(),
+        defaultTxPower: getDefaultTxPower(),
+        mode: getUserMode(),
+      };
+    },
+  });
+}
+
+/**
+ * Update UI settings in localStorage
+ * Automatically invalidates cache to trigger re-renders
+ */
+export function useUpdateSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (updates: {
+      timezone?: { value: string; label: string; offset: number };
+      defaultTxPower?: number;
+      mode?: "simple" | "advanced";
+    }) => {
+      if (typeof window === "undefined") return;
+
+      // Dynamically import to avoid SSR issues
+      const { saveTimezone, saveDefaultTxPower, saveUserMode } = await import("@/utils/settingsUtils");
+
+      if (updates.timezone) {
+        saveTimezone(updates.timezone.value);
+      }
+      if (updates.defaultTxPower !== undefined) {
+        saveDefaultTxPower(updates.defaultTxPower);
+      }
+      if (updates.mode) {
+        saveUserMode(updates.mode);
+      }
+
+      return updates;
+    },
+    onSuccess: () => {
+      // Invalidate settings cache to trigger re-renders
+      queryClient.invalidateQueries({ queryKey: qsoKeys.settings });
     },
   });
 }

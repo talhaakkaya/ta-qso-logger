@@ -1,7 +1,6 @@
 import { QSORecord } from "@/types";
 import { ImportResult } from "@/types/qso.types";
 import { validateQSORecord } from "@/utils/validationUtils";
-import { getStationCallsign } from "@/utils/settingsUtils";
 
 // Intermediate interface for parsing ADIF data
 interface ParsedADIFData extends Partial<QSORecord> {
@@ -114,8 +113,7 @@ class ADIFService {
   /**
    * Export QSO records to ADIF format
    */
-  exportToADIF(records: QSORecord[], logbookName?: string): { filename: string; blob: Blob } {
-    const stationCallsign = getStationCallsign();
+  exportToADIF(records: QSORecord[], logbookName?: string, stationCallsign?: string): { filename: string; blob: Blob } {
     const now = new Date();
     const createdDate = now.toISOString().split("T")[0];
 
@@ -352,8 +350,8 @@ class ADIFService {
   /**
    * Download ADIF file
    */
-  downloadADIF(records: QSORecord[], logbookName?: string): void {
-    const { filename, blob } = this.exportToADIF(records, logbookName);
+  downloadADIF(records: QSORecord[], logbookName?: string, stationCallsign?: string): void {
+    const { filename, blob } = this.exportToADIF(records, logbookName, stationCallsign);
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
 
