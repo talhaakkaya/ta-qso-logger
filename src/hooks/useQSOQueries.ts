@@ -230,7 +230,7 @@ export function useUpdateProfile() {
     mutationFn: (updates: { callsign?: string; name?: string; gridSquare?: string }) =>
       apiService.updateProfile(updates),
     onSuccess: () => {
-      // Invalidate to force refetch and update localStorage cache
+      // Invalidate profile cache to trigger re-renders
       queryClient.invalidateQueries({ queryKey: qsoKeys.profile });
     },
   });
