@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -139,7 +140,8 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
             ADIF İçe Aktar
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <DialogBody>
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label>ADIF Dosyası Seçin</Label>
             <Input
@@ -228,6 +230,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
             </Alert>
           )}
         </div>
+        </DialogBody>
         <DialogFooter>
           <Button variant="secondary" onClick={handleClose} disabled={isImporting}>
             {importResult?.success ? "Kapat" : "İptal"}

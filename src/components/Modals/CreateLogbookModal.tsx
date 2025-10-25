@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,8 @@ const CreateLogbookModal: React.FC<CreateLogbookModalProps> = ({ show, onHide })
             Yeni Logbook Oluştur
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <DialogBody>
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="logbook-name">Logbook Adı</Label>
             <Input
@@ -95,6 +97,7 @@ const CreateLogbookModal: React.FC<CreateLogbookModalProps> = ({ show, onHide })
             </p>
           </div>
         </div>
+        </DialogBody>
         <DialogFooter>
           <Button variant="secondary" onClick={handleClose} disabled={isCreating}>
             İptal

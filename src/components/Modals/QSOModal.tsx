@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -432,7 +433,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
 
   return (
     <Dialog open={show} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[800px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isEditMode ? (
@@ -448,7 +449,8 @@ const QSOModal: React.FC<QSOModalProps> = ({
             )}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <DialogBody>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
@@ -707,6 +709,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
             </div>
           )}
         </div>
+        </DialogBody>
         <DialogFooter>
           <Button variant="secondary" onClick={handleClose} disabled={isSaving}>
             İptal

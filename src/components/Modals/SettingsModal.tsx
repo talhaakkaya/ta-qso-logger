@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -113,14 +114,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
 
   return (
     <Dialog open={show} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings />
             Ayarlar
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-6 py-4">
+        <DialogBody>
+        <div className="space-y-6">
           {/* Station Callsign */}
           <div className="space-y-2">
             <Label>İstasyon Çağrı İşareti</Label>
@@ -277,6 +279,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
             )}
           </div>
         </div>
+        </DialogBody>
         <DialogFooter>
           <Button variant="secondary" onClick={handleClose} disabled={isLoading}>
             İptal

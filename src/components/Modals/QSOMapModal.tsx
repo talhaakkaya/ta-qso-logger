@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useQSO } from '@/contexts/QSOContext';
@@ -46,6 +47,7 @@ const QSOMapModal: React.FC<QSOMapModalProps> = ({ show, onHide }) => {
             </span>
           </DialogTitle>
         </DialogHeader>
+        <DialogBody>
         <div>
           {recordsWithLocation.length === 0 ? (
             <div className="flex items-center justify-center py-12">
@@ -60,6 +62,7 @@ const QSOMapModal: React.FC<QSOMapModalProps> = ({ show, onHide }) => {
             </div>
           )}
         </div>
+        </DialogBody>
         <DialogFooter>
           <div className="flex gap-2 md:gap-3 w-full justify-center flex-wrap">
             <div className="flex items-center gap-2">

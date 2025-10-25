@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
 import { getColumns } from "./columns";
 
 const QSOTable: React.FC = () => {
-  const { filteredRecords, isLoading } = useQSO();
+  const { filteredRecords, isLoading, currentLogbook } = useQSO();
   const userMode = useUserMode();
   const qsoModal = useModal<QSORecord>();
   const deleteModal = useModal<QSORecord>();
@@ -32,6 +32,11 @@ const QSOTable: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
+
+  // Reset expanded state when logbook changes to prevent stale expansion
+  useEffect(() => {
+    setExpanded({});
+  }, [currentLogbook?.id]);
 
   const handleOpenAddModal = () => {
     qsoModal.open(undefined);

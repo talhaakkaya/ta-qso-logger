@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogBody,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -216,7 +217,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
 
   return (
     <Dialog open={show} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[900px] lg:max-w-[1000px] max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-[95vw] sm:max-w-[900px] lg:max-w-[1000px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 flex-wrap">
             <FileSpreadsheet className="shrink-0" />
@@ -227,8 +228,8 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
             </span>
           </DialogTitle>
         </DialogHeader>
-
-        <div className="space-y-4 py-4 overflow-y-auto overflow-x-hidden flex-1">
+        <DialogBody>
+        <div className="space-y-4">
           {/* Step 1: File Selection */}
           {step === 1 && (
             <div className="space-y-4">
@@ -398,7 +399,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
             </Alert>
           )}
         </div>
-
+        </DialogBody>
         <DialogFooter>
           {step === 1 && (
             <Button variant="secondary" onClick={handleClose}>

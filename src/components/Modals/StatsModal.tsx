@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BarChart3, Loader2 } from "lucide-react";
@@ -124,20 +125,20 @@ const StatsModal: React.FC<StatsModalProps> = ({ show, onHide }) => {
 
   return (
     <Dialog open={show} onOpenChange={onHide}>
-      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BarChart3 />
             Frekans İstatistikleri
           </DialogTitle>
         </DialogHeader>
-
+        <DialogBody>
         {loading ? (
           <div className="flex items-center justify-center h-[400px]">
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="space-y-6 py-4">
+          <div className="space-y-6">
             {/* Summary Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -167,6 +168,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ show, onHide }) => {
             </div>
           </div>
         )}
+        </DialogBody>
       </DialogContent>
     </Dialog>
   );

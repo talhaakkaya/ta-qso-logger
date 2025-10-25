@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -85,14 +86,14 @@ const QCodeModal: React.FC<QCodeModalProps> = ({ show, onHide }) => {
 
   return (
     <Dialog open={show} onOpenChange={onHide}>
-      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HelpCircle />
             Q Kodları Referansı
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <DialogBody className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -123,7 +124,7 @@ const QCodeModal: React.FC<QCodeModalProps> = ({ show, onHide }) => {
               </TableBody>
             </Table>
           </ScrollArea>
-        </div>
+        </DialogBody>
       </DialogContent>
     </Dialog>
   );
