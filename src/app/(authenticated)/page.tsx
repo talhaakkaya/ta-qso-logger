@@ -19,6 +19,13 @@ import CreateLogbookModal from "@/components/Modals/CreateLogbookModal";
 import StatsModal from "@/components/Modals/StatsModal";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
+import { useSwipeToOpenSidebar } from "@/hooks/useSwipeToOpenSidebar";
+
+// Wrapper component to enable swipe gesture inside SidebarProvider context
+function SwipeGestureHandler({ children }: { children: React.ReactNode }) {
+  useSwipeToOpenSidebar();
+  return <>{children}</>;
+}
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -51,24 +58,25 @@ export default function HomePage() {
 
   return (
     <SidebarProvider>
-      <AppSidebar
-        onShowSettings={() => setShowSettings(true)}
-        onShowImport={() => setShowImport(true)}
-        onShowCSVImport={() => setShowCSVImport(true)}
-        onShowQSOMap={() => setShowQSOMap(true)}
-        onShowQCodes={() => setShowQCodeModal(true)}
-        onShowCreateLogbook={() => setShowCreateLogbook(true)}
-        onShowStats={() => setShowStats(true)}
-      />
-      <SidebarInset>
-        <Header />
-        <main className="flex-1 flex flex-col gap-4 p-4">
-          <Dashboard />
-          <FilterSection />
-          <QSOTable />
-        </main>
-        <Footer />
-      </SidebarInset>
+      <SwipeGestureHandler>
+        <AppSidebar
+          onShowSettings={() => setShowSettings(true)}
+          onShowImport={() => setShowImport(true)}
+          onShowCSVImport={() => setShowCSVImport(true)}
+          onShowQSOMap={() => setShowQSOMap(true)}
+          onShowQCodes={() => setShowQCodeModal(true)}
+          onShowCreateLogbook={() => setShowCreateLogbook(true)}
+          onShowStats={() => setShowStats(true)}
+        />
+        <SidebarInset>
+          <Header />
+          <main className="flex-1 flex flex-col gap-4 p-4">
+            <Dashboard />
+            <FilterSection />
+            <QSOTable />
+          </main>
+          <Footer />
+        </SidebarInset>
 
       <QCodeModal
         show={showQCodeModal}
@@ -100,6 +108,7 @@ export default function HomePage() {
       />
 
       <Toaster position="top-right" richColors />
+      </SwipeGestureHandler>
     </SidebarProvider>
   );
 }
