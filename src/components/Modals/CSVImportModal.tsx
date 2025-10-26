@@ -229,7 +229,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
           </DialogTitle>
         </DialogHeader>
         <DialogBody>
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Step 1: File Selection */}
           {step === 1 && (
             <div className="space-y-4">

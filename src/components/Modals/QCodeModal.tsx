@@ -93,8 +93,8 @@ const QCodeModal: React.FC<QCodeModalProps> = ({ show, onHide }) => {
             Q Kodları Referansı
           </DialogTitle>
         </DialogHeader>
-        <DialogBody className="space-y-4">
-          <div className="relative">
+        <DialogBody className="space-y-6">
+          <div className="relative mt-2">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
             <Input
               type="text"

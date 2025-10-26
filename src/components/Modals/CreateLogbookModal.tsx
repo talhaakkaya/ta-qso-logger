@@ -78,7 +78,7 @@ const CreateLogbookModal: React.FC<CreateLogbookModalProps> = ({ show, onHide })
           </DialogTitle>
         </DialogHeader>
         <DialogBody>
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="logbook-name">Logbook Adı</Label>
             <Input

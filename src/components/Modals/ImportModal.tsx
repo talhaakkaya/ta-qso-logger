@@ -141,7 +141,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
           </DialogTitle>
         </DialogHeader>
         <DialogBody>
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="space-y-2">
             <Label>ADIF Dosyası Seçin</Label>
             <Input
