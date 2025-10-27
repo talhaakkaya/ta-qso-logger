@@ -160,7 +160,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
       // Reset map coordinates when modal closes
       setMapCoordinates(null);
     }
-  }, [show, record]);
+  }, [show, record, settingsData?.defaultTxPower]);
 
   // Update map coordinates when grid square changes
   useEffect(() => {
@@ -345,7 +345,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
       console.error("Failed to generate RF LOS URL:", error);
       return null;
     }
-  }, [stationGridSquare, formData.qth, formData.callsign]);
+  }, [stationGridSquare, stationCallsign, formData.qth, formData.callsign]);
 
   // Handle QRZ API lookup
   const handleQRZLookup = async () => {
@@ -507,6 +507,17 @@ const QSOModal: React.FC<QSOModalProps> = ({
               </div>
               {errors.callsign && (
                 <p className="text-sm text-destructive">{errors.callsign}</p>
+              )}
+              {formData.callsign && (
+                <a
+                  href={`https://www.qrz.com/db/${formData.callsign.trim()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors w-fit"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  QRZ.com&apos;da görüntüle
+                </a>
               )}
             </div>
           </div>
