@@ -4,6 +4,8 @@
  * Format: 2 letters + 2 digits + 2 letters + 2 digits + 2 letters (up to 10 chars, e.g., JO01aa00aa)
  */
 
+import { toCallsignCase } from "./stringUtils";
+
 /**
  * Convert latitude and longitude coordinates to Maidenhead grid square
  * @param lat Latitude in decimal degrees (-90 to +90)
@@ -44,7 +46,7 @@ export function coordinatesToGridSquare(lat: number, lon: number, precision: num
   let gridSquare = `${fieldLon}${fieldLat}${squareLon}${squareLat}`;
 
   if (precision === 4) {
-    return gridSquare.toUpperCase();
+    return toCallsignCase(gridSquare);
   }
 
   // Subsquare (2 letters): a-x
@@ -59,7 +61,7 @@ export function coordinatesToGridSquare(lat: number, lon: number, precision: num
   gridSquare += `${subsquareLon}${subsquareLat}`;
 
   if (precision === 6) {
-    return gridSquare.toUpperCase();
+    return toCallsignCase(gridSquare);
   }
 
   // Extended square (2 digits): 0-9
@@ -74,7 +76,7 @@ export function coordinatesToGridSquare(lat: number, lon: number, precision: num
   gridSquare += `${extSquareLon}${extSquareLat}`;
 
   if (precision === 8) {
-    return gridSquare.toUpperCase();
+    return toCallsignCase(gridSquare);
   }
 
   // Extended subsquare (2 letters): a-x
@@ -85,7 +87,7 @@ export function coordinatesToGridSquare(lat: number, lon: number, precision: num
 
   gridSquare += `${extSubsquareLon}${extSubsquareLat}`;
 
-  return gridSquare.toUpperCase();
+  return toCallsignCase(gridSquare);
 }
 
 /**
@@ -111,7 +113,7 @@ export function gridSquareToCoordinates(gridSquare: string): { lat: number; lon:
     return null;
   }
 
-  const upper = gridSquare.toUpperCase();
+  const upper = toCallsignCase(gridSquare);
 
   // Extract field (2 letters)
   const fieldLon = upper.charCodeAt(0) - 65; // A=0, R=17

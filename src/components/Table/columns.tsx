@@ -10,9 +10,10 @@ interface ColumnsProps {
   userMode: 'simple' | 'advanced';
   onEdit: (record: QSORecord) => void;
   onDelete: (record: QSORecord) => void;
+  t: (key: string) => string;
 }
 
-export const getColumns = ({ userMode, onEdit, onDelete }: ColumnsProps): ColumnDef<QSORecord>[] => {
+export const getColumns = ({ userMode, onEdit, onDelete, t }: ColumnsProps): ColumnDef<QSORecord>[] => {
   const columns: ColumnDef<QSORecord>[] = [
     {
       id: "expander",
@@ -44,7 +45,7 @@ export const getColumns = ({ userMode, onEdit, onDelete }: ColumnsProps): Column
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="hover:bg-transparent p-0"
           >
-            Tarih/Saat
+            {t("qso.fields.datetime")}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -60,7 +61,7 @@ export const getColumns = ({ userMode, onEdit, onDelete }: ColumnsProps): Column
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="hover:bg-transparent p-0"
           >
-            Çağrı İşareti
+            {t("qso.fields.callsign")}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -76,7 +77,7 @@ export const getColumns = ({ userMode, onEdit, onDelete }: ColumnsProps): Column
                 target="_blank"
                 rel="noopener noreferrer"
                 className="no-underline"
-                title="QRZ.com'da görüntüle"
+                title={t("common.viewOnQrz")}
                 onClick={(e) => e.stopPropagation()}
               >
                 <ExternalLink className="w-3 h-3" />
@@ -88,12 +89,12 @@ export const getColumns = ({ userMode, onEdit, onDelete }: ColumnsProps): Column
     },
     {
       accessorKey: "name",
-      header: "İsim",
+      header: t("qso.fields.name"),
       cell: ({ row }) => row.getValue("name") || "-",
     },
     {
       accessorKey: "freq",
-      header: "Frekans",
+      header: t("qso.fields.frequencyShort"),
       cell: ({ row }) => {
         const freq = row.getValue("freq") as number | undefined;
         return freq ? `${parseFloat(freq.toString()).toFixed(3)} MHz` : "-";
@@ -106,12 +107,12 @@ export const getColumns = ({ userMode, onEdit, onDelete }: ColumnsProps): Column
     columns.push(
       {
         accessorKey: "mode",
-        header: "Mod",
+        header: t("qso.fields.mode"),
         cell: ({ row }) => row.getValue("mode") || "-",
       },
       {
         accessorKey: "txPower",
-        header: "Güç",
+        header: t("qso.fields.powerShort"),
         cell: ({ row }) => {
           const power = row.getValue("txPower") as number | undefined;
           return power ? `${power} W` : "-";
@@ -119,12 +120,12 @@ export const getColumns = ({ userMode, onEdit, onDelete }: ColumnsProps): Column
       },
       {
         accessorKey: "rstSent",
-        header: "RST Gön.",
+        header: t("qso.fields.rstSentShort"),
         cell: ({ row }) => row.getValue("rstSent") || "-",
       },
       {
         accessorKey: "rstReceived",
-        header: "RST Alı.",
+        header: t("qso.fields.rstReceivedShort"),
         cell: ({ row }) => row.getValue("rstReceived") || "-",
       }
     );
@@ -134,12 +135,12 @@ export const getColumns = ({ userMode, onEdit, onDelete }: ColumnsProps): Column
   columns.push(
     {
       accessorKey: "qth",
-      header: userMode === 'simple' ? 'QTH' : 'Grid Square',
+      header: userMode === 'simple' ? t("qso.fields.qthShort") : t("qso.fields.gridSquare"),
       cell: ({ row }) => row.getValue("qth") || "-",
     },
     {
       accessorKey: "notes",
-      header: "Notlar",
+      header: t("qso.fields.notes"),
       cell: ({ row }) => {
         const notes = row.getValue("notes") as string;
         if (!notes) return "-";
@@ -152,7 +153,7 @@ export const getColumns = ({ userMode, onEdit, onDelete }: ColumnsProps): Column
     },
     {
       id: "actions",
-      header: "İşlemler",
+      header: t("qso.fields.actions"),
       cell: ({ row }) => {
         const record = row.original;
         return (

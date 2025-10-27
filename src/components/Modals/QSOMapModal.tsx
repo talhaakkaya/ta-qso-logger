@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from "next-intl";
 import dynamic from 'next/dynamic';
 import {
   Dialog,
@@ -13,22 +14,23 @@ import {
 import { useQSO } from '@/contexts/QSOContext';
 import { Map, MapPin } from 'lucide-react';
 
-// Dynamically import QSOWorldMap to avoid SSR issues
-const QSOWorldMap = dynamic(
-  () => import('@/components/Map/QSOWorldMap'),
-  {
-    ssr: false,
-    loading: () => <div className="text-center p-4">Harita yükleniyor...</div>
-  }
-);
-
 interface QSOMapModalProps {
   show: boolean;
   onHide: () => void;
 }
 
 const QSOMapModal: React.FC<QSOMapModalProps> = ({ show, onHide }) => {
+  const t = useTranslations();
   const { qsoRecords } = useQSO();
+
+  // Dynamically import QSOWorldMap to avoid SSR issues
+  const QSOWorldMap = dynamic(
+    () => import('@/components/Map/QSOWorldMap'),
+    {
+      ssr: false,
+      loading: () => <div className="text-center p-4">{t("modals.qsoMap.mapLoading")}</div>
+    }
+  );
 
   // Count records with grid squares
   const recordsWithLocation = qsoRecords.filter(
@@ -41,9 +43,9 @@ const QSOMapModal: React.FC<QSOMapModalProps> = ({ show, onHide }) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Map className="w-5 h-5" />
-            QSO Haritası
+            {t("modals.qsoMap.title")}
             <span className="ml-2 text-sm text-muted-foreground font-normal">
-              ({recordsWithLocation.length} konum)
+              ({recordsWithLocation.length} {t("common.locations")})
             </span>
           </DialogTitle>
         </DialogHeader>
@@ -53,7 +55,7 @@ const QSOMapModal: React.FC<QSOMapModalProps> = ({ show, onHide }) => {
             <div className="flex items-center justify-center py-12">
               <div className="text-center text-muted-foreground">
                 <MapPin className="w-12 h-12 mx-auto mb-3" />
-                <p className="mt-3">Grid square bilgisi olan QSO kaydı bulunmuyor</p>
+                <p className="mt-3">{t("modals.qsoMap.noRecords")}</p>
               </div>
             </div>
           ) : (
@@ -87,7 +89,7 @@ const QSOMapModal: React.FC<QSOMapModalProps> = ({ show, onHide }) => {
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-              <small>Other</small>
+              <small>{t("common.other")}</small>
             </div>
           </div>
         </DialogFooter>

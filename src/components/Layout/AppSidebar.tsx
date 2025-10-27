@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useQSO } from "@/contexts/QSOContext";
 import { useToast } from "@/hooks/useToast";
 import { useUserMode } from "@/hooks/useUserMode";
@@ -17,6 +18,7 @@ import {
   Plus,
   BarChart3,
 } from "lucide-react";
+import { LanguageSwitch } from "@/components/Navigation/LanguageSwitch";
 import {
   Sidebar,
   SidebarContent,
@@ -38,7 +40,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ThemeToggle } from "@/components/Layout/ThemeToggle";
 
 interface AppSidebarProps {
   onShowSettings: () => void;
@@ -59,17 +60,18 @@ export function AppSidebar({
   onShowCreateLogbook,
   onShowStats,
 }: AppSidebarProps) {
+  const t = useTranslations();
   const { qsoRecords, exportToADIF, logbooks, currentLogbook, setCurrentLogbook } = useQSO();
   const { showToast } = useToast();
   const userMode = useUserMode();
 
   const handleExport = () => {
     if (qsoRecords.length === 0) {
-      showToast("Dışa aktarılacak kayıt bulunmuyor", "warning");
+      showToast(t("navigation.toast.noRecordsToExport"), "warning");
       return;
     }
     exportToADIF();
-    showToast("QSO kayıtları ADIF olarak dışa aktarıldı", "success");
+    showToast(t("navigation.toast.exportSuccess"), "success");
   };
 
   return (
@@ -83,8 +85,8 @@ export function AppSidebar({
                   <Image src="/favicon.svg" alt="TA QSO Logo" className="size-8 rounded-md" width={32} height={32} />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">TA QSO Logger</span>
-                  <span className="text-xs">Amatör Telsiz</span>
+                  <span className="font-semibold">{t("navigation.appName")}</span>
+                  <span className="text-xs">{t("navigation.appDescription")}</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -94,7 +96,7 @@ export function AppSidebar({
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Logbook</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("navigation.sections.logbook")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="px-2 py-2 space-y-2">
               <Select
@@ -104,7 +106,7 @@ export function AppSidebar({
                 <SelectTrigger className="w-full">
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4" />
-                    <SelectValue placeholder="Logbook seçin" />
+                    <SelectValue placeholder={t("navigation.menu.selectLogbook")} />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
@@ -113,7 +115,7 @@ export function AppSidebar({
                       <div className="flex items-center justify-between w-full gap-2">
                         <span>{logbook.name}</span>
                         <span className="text-xs text-muted-foreground">
-                          ({logbook.qsoCount} QSO)
+                          ({logbook.qsoCount} {t("qso.qso")})
                         </span>
                       </div>
                     </SelectItem>
@@ -124,7 +126,7 @@ export function AppSidebar({
                 <SidebarMenuItem>
                   <SidebarMenuButton onClick={onShowCreateLogbook} className="w-full">
                     <Plus className="h-4 w-4" />
-                    <span>Yeni Logbook</span>
+                    <span>{t("navigation.menu.newLogbook")}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -135,45 +137,45 @@ export function AppSidebar({
         <SidebarSeparator />
 
         <SidebarGroup>
-          <SidebarGroupLabel>Menü</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("navigation.sections.menu")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={handleExport}>
                   <Download />
-                  <span>Dışa Aktar</span>
+                  <span>{t("navigation.menu.export")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={onShowImport}>
                   <Upload />
-                  <span>İçe Aktar (ADIF)</span>
+                  <span>{t("navigation.menu.importAdif")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={onShowCSVImport}>
                   <FileSpreadsheet />
-                  <span>İçe Aktar (CSV)</span>
+                  <span>{t("navigation.menu.importCsv")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               {userMode === 'advanced' && (
                 <SidebarMenuItem>
                   <SidebarMenuButton onClick={onShowQSOMap}>
                     <Map />
-                    <span>QSO Haritası</span>
+                    <span>{t("navigation.menu.qsoMap")}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={onShowSettings}>
                   <Settings />
-                  <span>Ayarlar</span>
+                  <span>{t("navigation.menu.settings")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={onShowStats}>
                   <BarChart3 />
-                  <span>İstatistikler</span>
+                  <span>{t("navigation.menu.statistics")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -183,13 +185,13 @@ export function AppSidebar({
         <SidebarSeparator />
 
         <SidebarGroup>
-          <SidebarGroupLabel>Yardım</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("navigation.sections.help")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={onShowQCodes}>
                   <HelpCircle />
-                  <span>Q Kodları</span>
+                  <span>{t("navigation.menu.qcodes")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -200,7 +202,7 @@ export function AppSidebar({
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <ThemeToggle />
+            <LanguageSwitch />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

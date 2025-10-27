@@ -1,0 +1,339 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "clear": "Clear",
+    "loading": "Loading...",
+    "skip": "(Skip)",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "welcome": "Welcome",
+    "logout": "Log Out",
+    "viewOnQrz": "View on QRZ.com",
+    "locations": "location",
+    "other": "Other",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "showingRecords": "Showing {count} of {total}",
+    "footer": {
+      "inspiredBy": "'s QSO Logger inspired this project",
+      "developedBy": "Developed by",
+      "sign73": "73! Good QSOs!"
+    }
+  },
+  "qso": {
+    "qso": "QSO",
+    "newQso": "New QSO",
+    "editQso": "Edit QSO",
+    "qsoRecords": "QSO Records",
+    "totalQso": "TOTAL QSO",
+    "todayQso": "TODAY'S QSO",
+    "filtered": "FILTERED",
+    "uniqueCallsigns": "UNIQUE CALLSIGNS",
+    "fields": {
+      "datetime": "Date/Time",
+      "callsign": "Callsign",
+      "name": "Name",
+      "frequency": "Frequency (MHz)",
+      "frequencyShort": "Frequency",
+      "gridSquare": "Grid Square",
+      "mode": "Mode",
+      "power": "Power (W)",
+      "powerShort": "Power",
+      "rstSent": "RST Sent",
+      "rstSentShort": "RST Sent",
+      "rstReceived": "RST Received",
+      "rstReceivedShort": "RST Rcvd",
+      "qth": "QTH/Location",
+      "qthShort": "QTH",
+      "notes": "Notes",
+      "actions": "Actions",
+      "dateOnly": "Date *",
+      "timeOnly": "Time *",
+      "datetimeCombined": "Date/Time (Combined)"
+    },
+    "placeholders": {
+      "callsign": "W1ABC",
+      "name": "John",
+      "frequency": "14.074",
+      "gridSquare": "FN42",
+      "mode": "SSB",
+      "power": "100",
+      "rst": "59",
+      "qth": "Boston",
+      "notes": "First QSO"
+    },
+    "tooltips": {
+      "fetchFromQrz": "Fetch from QRZ",
+      "searchLocation": "Search location"
+    }
+  },
+  "modals": {
+    "qsoMap": {
+      "title": "QSO Map",
+      "noRecords": "No QSO records with grid square information",
+      "mapLoading": "Map loading..."
+    },
+    "settings": {
+      "title": "Settings",
+      "stationCallsign": "Station Callsign",
+      "gridSquare": "Grid Square (Maidenhead Locator)",
+      "defaultPower": "Default Power (W)",
+      "usageMode": "Usage Mode",
+      "simpleMode": "Simple Mode",
+      "advancedMode": "Advanced Mode",
+      "timezone": "Time Zone",
+      "language": "Language",
+      "deleteAllRecords": "Delete All QSO Records",
+      "deleteWarning": "This action cannot be undone. Are you sure?",
+      "deleteAllButton": "Delete All Records",
+      "confirmDelete": "Yes, Delete"
+    },
+    "qcodes": {
+      "title": "Q Codes Reference",
+      "searchPlaceholder": "Search Q code or meaning...",
+      "headers": {
+        "code": "Q Code",
+        "meaning": "Meaning"
+      }
+    },
+    "import": {
+      "title": "Import ADIF",
+      "csvTitle": "Import CSV",
+      "selectFile": "Select ADIF File",
+      "selectCsvFile": "Select CSV File",
+      "supportedFormats": "Supported formats: .adi, .adif (ADIF 3.1.4)",
+      "csvSupportedFormat": "Supported format: .csv (UTF-8 encoded)",
+      "targetLogbook": "Target Logbook",
+      "selectLogbook": "Select logbook",
+      "recordsWillBeImported": "QSO records will be imported to this logbook",
+      "selectedFile": "Selected file:",
+      "allDuplicates": "All records skipped as duplicates",
+      "recordsImported": "{count} records imported successfully",
+      "recordsImportedWithErrors": "{count} records imported successfully, {errors} records skipped",
+      "importFailed": "Import failed",
+      "importError": "Error occurred during import",
+      "importing": "Importing...",
+      "import": "Import",
+      "success": "Success!",
+      "error": "Error!",
+      "imported": "Imported:",
+      "records": "records",
+      "failed": "Failed:",
+      "failedOrSkipped": "Failed/Skipped:",
+      "errorMessages": "Error messages:",
+      "messages": "Messages:",
+      "invalidCsvFile": "Please select a valid CSV file (.csv)",
+      "csvMinRows": "CSV file must contain at least header and one data row",
+      "csvParseError": "CSV parsing error: {error}",
+      "invalidMapping": "Invalid column mapping",
+      "columnMapping": "Column Mapping",
+      "result": "Result",
+      "columnsFound": "{columns} columns, {rows} rows found",
+      "mappingInfo": "Map each CSV column to QSO fields. Fields marked with (*) are required.",
+      "preview": "Preview (First 3 Rows)",
+      "back": "Back",
+      "importCount": "Import ({count} records)"
+    },
+    "createLogbook": {
+      "title": "Create New Logbook",
+      "nameLabel": "Logbook Name",
+      "placeholder": "e.g. Contest 2025, POTA Activations",
+      "helperText": "Use meaningful names to organize your logbooks",
+      "create": "Create",
+      "creating": "Creating..."
+    },
+    "stats": {
+      "title": "Statistics",
+      "chartLabel": "QSO Count",
+      "frequencyStats": "Frequency Statistics",
+      "totalUsers": "Total Users",
+      "totalQSO": "Total QSO",
+      "topFrequencies": "Top 10 Frequencies"
+    },
+    "deleteConfirm": {
+      "title": "Delete QSO Record",
+      "message": "Are you sure you want to delete this QSO record?",
+      "callsignLabel": "Callsign:",
+      "dateLabel": "Date:",
+      "warning": "This action cannot be undone."
+    }
+  },
+  "validation": {
+    "required": {
+      "callsign": "Callsign is required",
+      "datetime": "Date/Time is required",
+      "dateAndTime": "Date and time are required",
+      "logbookName": "Logbook name is required",
+      "file": "Please select a file",
+      "logbook": "Please select a logbook"
+    },
+    "invalid": {
+      "callsign": "Invalid callsign",
+      "gridSquare": "Invalid grid square format (e.g., JO01aa)",
+      "adifFile": "Please select a valid ADIF file (.adi or .adif)"
+    },
+    "error": {
+      "gridSquareUpdateFailed": "Grid square update failed",
+      "callsignNotFound": "Callsign not found",
+      "qrzQueryFailed": "QRZ query failed",
+      "sessionExpired": "Your session has expired",
+      "tooManyRequests": "Too many requests",
+      "serverError": "Server error",
+      "qrzServiceUnavailable": "QRZ API service unavailable",
+      "qrzNotConfigured": "QRZ API not configured",
+      "enterCallsignFirst": "Please enter callsign first",
+      "logbookExists": "A logbook with this name already exists",
+      "logbookNameTooLong": "Logbook name too long (maximum 100 characters)",
+      "logbookCreateFailed": "Failed to create logbook",
+      "settingsSaveFailed": "Failed to save settings"
+    },
+    "success": {
+      "gridSquareUpdated": "Grid square updated",
+      "qrzDataLoaded": "QRZ data loaded",
+      "settingsSaved": "Settings saved",
+      "logbookCreated": "\"{name}\" logbook created"
+    }
+  },
+  "navigation": {
+    "appName": "TA QSO Logger",
+    "appDescription": "Amateur Radio",
+    "sections": {
+      "logbook": "Logbook",
+      "menu": "Menu",
+      "help": "Help"
+    },
+    "menu": {
+      "selectLogbook": "Select logbook",
+      "newLogbook": "New Logbook",
+      "export": "Export",
+      "importAdif": "Import (ADIF)",
+      "importCsv": "Import (CSV)",
+      "qsoMap": "QSO Map",
+      "settings": "Settings",
+      "statistics": "Statistics",
+      "qcodes": "Q Codes"
+    },
+    "toast": {
+      "noRecordsToExport": "No records to export",
+      "exportSuccess": "QSO records exported as ADIF"
+    }
+  },
+  "filters": {
+    "title": "Filters",
+    "year": "Year",
+    "month": "Month",
+    "generalSearch": "General Search",
+    "allYears": "All Years",
+    "allMonths": "All Months",
+    "searchPlaceholder": "Search all fields...",
+    "filterLabel": "Filter:",
+    "searchLabel": "Search:",
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
+    "aria": {
+      "clearYear": "Clear year filter",
+      "clearMonth": "Clear month filter",
+      "clearSearch": "Clear search"
+    }
+  },
+  "auth": {
+    "title": "TA QSO Logger",
+    "description": "Modern web-based QSO logging system for amateur radio operators. Manage your contacts, import/export with ADIF support, and view them on a world map.",
+    "loginButton": "Sign in with Google",
+    "stats": {
+      "users": "Users",
+      "qsos": "QSO Records"
+    },
+    "features": {
+      "title": "Features",
+      "qsoManagement": {
+        "title": "QSO Management",
+        "description": "Create, edit, and delete your amateur radio contact records."
+      },
+      "importExport": {
+        "title": "Import/Export",
+        "description": "Import and export your contacts in ADIF (.adi) and CSV formats."
+      },
+      "interactiveMaps": {
+        "title": "Interactive Maps",
+        "description": "View all your contacts on a world map with Leaflet."
+      },
+      "simpleModes": {
+        "title": "Simple & Advanced Mode",
+        "description": "Simple mode for beginners, advanced mode for experienced operators."
+      }
+    },
+    "footer": "73! Good QSOs!",
+    "credits": "Developed by TA1VAL, inspired by TA1TLA's QSO Logger."
+  },
+  "qcodes": {
+    "QRA": "What is the name of your station?",
+    "QRB": "How far are you from my station?",
+    "QRG": "Will you tell me my exact frequency?",
+    "QRH": "Does my frequency vary?",
+    "QRI": "How is the tone?",
+    "QRK": "What is the intelligibility of my signals?",
+    "QRL": "Are you busy?",
+    "QRM": "Is there interference from other stations?",
+    "QRN": "Is there atmospheric interference?",
+    "QRO": "Shall I increase power?",
+    "QRP": "Shall I decrease power?",
+    "QRQ": "Shall I send faster?",
+    "QRS": "Shall I send slower?",
+    "QRT": "Shall I stop transmission?",
+    "QRU": "Have you anything for me?",
+    "QRV": "Are you ready?",
+    "QRW": "Shall I tell...station?",
+    "QRX": "When will you call me again?",
+    "QRZ": "Who is calling me?",
+    "QSA": "What is the strength of my signals?",
+    "QSB": "Are my signals fading?",
+    "QSD": "Is my keying defective?",
+    "QSG": "Shall I send...telegrams?",
+    "QSK": "Can you hear me?",
+    "QSL": "Can you acknowledge receipt?",
+    "QSM": "Shall I repeat the last message?",
+    "QSN": "Did you hear me on...frequency?",
+    "QSO": "Can you communicate with...directly?",
+    "QSP": "Will you relay to...?",
+    "QSU": "Can you reply on this frequency?",
+    "QSV": "Shall I send V (dot dot dot dash) on this frequency?",
+    "QSW": "Will you transmit on this frequency?",
+    "QSX": "Are you listening on...frequency?",
+    "QSY": "Shall I change to another frequency?",
+    "QSZ": "Shall I send each group twice?",
+    "QTA": "Shall I cancel telegram number...?",
+    "QTB": "Do you agree with my word count?",
+    "QTC": "How many telegrams have you?",
+    "QTH": "What is your location?",
+    "QTI": "What is your course?",
+    "QTR": "What is the exact time?",
+    "QTS": "Will you send my callsign?",
+    "QTU": "What are your operating hours?",
+    "QTX": "Will you keep your station open?",
+    "QUA": "Have you news of...?",
+    "QUC": "What is the number of the last message I received?",
+    "QUD": "Have you received urgency signal?",
+    "QUE": "What language can...speak?"
+  }
+}

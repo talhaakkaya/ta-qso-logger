@@ -2,6 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatNumber } from "@/utils/stringUtils";
 
 type ColorVariant = "blue" | "purple" | "green" | "orange";
 
@@ -38,11 +39,11 @@ const StatsCard: React.FC<StatsCardProps> = ({
     <Card className="h-full">
       <CardContent className="flex items-center p-6">
         <div className="flex-grow">
-          <h6 className="text-muted-foreground mb-2 text-xs uppercase font-semibold tracking-wider">
+          <h6 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider">
             {title}
           </h6>
           <h3 className="mb-0 font-bold text-3xl">
-            {value.toLocaleString("tr-TR")}
+            {formatNumber(value)}
           </h3>
         </div>
         <div className="relative flex items-center justify-center w-[60px] h-[60px]">

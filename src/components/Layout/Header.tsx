@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import { useSession, signOut } from "next-auth/react";
 import { useQSO } from "@/contexts/QSOContext";
 import {
@@ -14,9 +15,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/Layout/ThemeToggle";
 import { LogOut, UserCircle } from "lucide-react";
 
 const Header: React.FC = () => {
+  const t = useTranslations();
   const { data: session } = useSession();
   const { currentLogbook } = useQSO();
 
@@ -27,8 +30,8 @@ const Header: React.FC = () => {
       <div className="flex-1">
         <h1 className="text-lg font-semibold">
           {currentLogbook?.isDefault
-            ? "Hoş Geldiniz"
-            : currentLogbook?.name || "Hoş Geldiniz"}
+            ? t("common.welcome")
+            : currentLogbook?.name || t("common.welcome")}
         </h1>
       </div>
 
@@ -54,12 +57,16 @@ const Header: React.FC = () => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <div className="px-2 py-1.5">
+                <ThemeToggle />
+              </div>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => signOut({ callbackUrl: "/auth/signin" })}
                 className="text-destructive cursor-pointer"
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Çıkış Yap
+                {t("common.logout")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

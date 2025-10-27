@@ -1,12 +1,21 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
-import { Radio, FileDown, Map, Github, Settings, Sun, Moon } from "lucide-react";
+import { useLocale } from "@/components/Providers/LocaleProvider";
+import { ThemeToggle } from "@/components/Layout/ThemeToggle";
+import { formatNumber } from "@/utils/stringUtils";
+import { Radio, FileDown, Map, Github, Settings, Languages } from "lucide-react";
 
 interface Stats {
   totalUsers: number;
@@ -14,8 +23,9 @@ interface Stats {
 }
 
 export default function SignIn() {
+  const t = useTranslations();
+  const { locale, setLocale } = useLocale();
   const [stats, setStats] = useState<Stats>({ totalUsers: 0, totalQSOs: 0 });
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -32,20 +42,36 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen bg-[#f8f8f8] dark:bg-background">
-      {/* Theme Toggle */}
+      {/* Theme Toggle & Language Switcher */}
       {mounted && (
-        <div className="fixed top-4 right-4 z-50">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </Button>
+        <div className="fixed top-4 right-4 z-50 flex gap-2">
+          {/* Language Switcher */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Languages className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setLocale("tr")}
+                className={locale === "tr" ? "bg-accent" : ""}
+              >
+                Türkçe
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setLocale("en")}
+                className={locale === "en" ? "bg-accent" : ""}
+              >
+                English
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Theme Toggle */}
+          <div className="flex items-center bg-background border rounded-lg">
+            <ThemeToggle />
+          </div>
         </div>
       )}
       {/* Hero Section */}
@@ -55,12 +81,10 @@ export default function SignIn() {
             <div className="lg:w-1/2 text-center lg:text-left">
               <div className="flex items-center justify-center lg:justify-start gap-4 mb-6">
                 <Image src="/favicon.svg" alt="TA QSO Logo" className="w-16 h-16" width={64} height={64} />
-                <h1 className="text-5xl font-bold text-foreground">TA QSO Logger</h1>
+                <h1 className="text-5xl font-bold text-foreground">{t("auth.title")}</h1>
               </div>
               <p className="text-xl mb-8 text-muted-foreground">
-                Amatör radyo operatörleri için modern web tabanlı QSO kayıt sistemi.
-                Bağlantılarınızı yönetin, ADIF desteği ile içe/dışa aktarın ve dünya
-                haritasında görüntüleyin.
+                {t("auth.description")}
               </p>
               <Button
                 size="lg"
@@ -73,7 +97,7 @@ export default function SignIn() {
                   <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Google ile Giriş Yap
+                {t("auth.loginButton")}
               </Button>
             </div>
             <div className="lg:w-1/2">
@@ -81,17 +105,17 @@ export default function SignIn() {
                 <Card className="bg-gradient-to-br from-blue-500 to-purple-600 shadow-md border-0">
                   <CardContent className="text-center p-6">
                     <h2 className="text-5xl font-bold text-white mb-2">
-                      {stats.totalUsers.toLocaleString("tr-TR")}
+                      {formatNumber(stats.totalUsers)}
                     </h2>
-                    <p className="text-white/90">Kullanıcı</p>
+                    <p className="text-white/90">{t("auth.stats.users")}</p>
                   </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-green-500 to-emerald-600 shadow-md border-0">
                   <CardContent className="text-center p-6">
                     <h2 className="text-5xl font-bold text-white mb-2">
-                      {stats.totalQSOs.toLocaleString("tr-TR")}
+                      {formatNumber(stats.totalQSOs)}
                     </h2>
-                    <p className="text-white/90">QSO Kaydı</p>
+                    <p className="text-white/90">{t("auth.stats.qsos")}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -103,16 +127,16 @@ export default function SignIn() {
       {/* Features Section */}
       <section className="py-12 bg-[#f8f8f8] dark:bg-background">
         <div className="container mx-auto px-4">
-          <h2 className="text-center text-3xl font-bold mb-12 text-foreground">Özellikler</h2>
+          <h2 className="text-center text-3xl font-bold mb-12 text-foreground">{t("auth.features.title")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="h-full bg-white dark:bg-card shadow-sm border-border">
               <CardContent className="text-center p-6">
                 <div className="mb-4 flex justify-center">
                   <Radio className="w-12 h-12 text-primary" />
                 </div>
-                <h5 className="text-xl font-semibold mb-3 text-foreground">QSO Yönetimi</h5>
+                <h5 className="text-xl font-semibold mb-3 text-foreground">{t("auth.features.qsoManagement.title")}</h5>
                 <p className="text-muted-foreground">
-                  Amatör radyo bağlantı kayıtlarınızı oluşturun, düzenleyin ve silin.
+                  {t("auth.features.qsoManagement.description")}
                 </p>
               </CardContent>
             </Card>
@@ -121,9 +145,9 @@ export default function SignIn() {
                 <div className="mb-4 flex justify-center">
                   <FileDown className="w-12 h-12 text-green-600" />
                 </div>
-                <h5 className="text-xl font-semibold mb-3 text-foreground">İçe/Dışa Aktarma</h5>
+                <h5 className="text-xl font-semibold mb-3 text-foreground">{t("auth.features.importExport.title")}</h5>
                 <p className="text-muted-foreground">
-                  ADIF (.adi) ve CSV formatlarında bağlantılarınızı içe ve dışa aktarın.
+                  {t("auth.features.importExport.description")}
                 </p>
               </CardContent>
             </Card>
@@ -132,9 +156,9 @@ export default function SignIn() {
                 <div className="mb-4 flex justify-center">
                   <Map className="w-12 h-12 text-cyan-600" />
                 </div>
-                <h5 className="text-xl font-semibold mb-3 text-foreground">İnteraktif Haritalar</h5>
+                <h5 className="text-xl font-semibold mb-3 text-foreground">{t("auth.features.interactiveMaps.title")}</h5>
                 <p className="text-muted-foreground">
-                  Tüm bağlantılarınızı Leaflet ile dünya haritasında görüntüleyin.
+                  {t("auth.features.interactiveMaps.description")}
                 </p>
               </CardContent>
             </Card>
@@ -143,9 +167,9 @@ export default function SignIn() {
                 <div className="mb-4 flex justify-center">
                   <Settings className="w-12 h-12 text-orange-600" />
                 </div>
-                <h5 className="text-xl font-semibold mb-3 text-foreground">Basit & Gelişmiş Mod</h5>
+                <h5 className="text-xl font-semibold mb-3 text-foreground">{t("auth.features.simpleModes.title")}</h5>
                 <p className="text-muted-foreground">
-                  Yeni başlayanlar için basit, deneyimli operatörler için gelişmiş mod.
+                  {t("auth.features.simpleModes.description")}
                 </p>
               </CardContent>
             </Card>
@@ -168,7 +192,7 @@ export default function SignIn() {
                 GitHub
               </a>
             </p>
-            <p className="text-muted-foreground mb-6">73! İyi QSO&apos;lar!</p>
+            <p className="text-muted-foreground mb-6">{t("auth.footer")}</p>
             <p className="text-xs text-muted-foreground">
               <a
                 href="https://www.qrz.com/db/TA1TLA"
@@ -178,7 +202,7 @@ export default function SignIn() {
               >
                 TA1TLA
               </a>
-              &apos;nin QSO Logger&apos;ından ilham alınarak{" "}
+              {locale === "tr" ? "'nin QSO Logger'ından ilham alınarak " : "'s QSO Logger, developed by "}
               <a
                 href="https://www.qrz.com/db/TA1VAL"
                 target="_blank"
@@ -187,7 +211,7 @@ export default function SignIn() {
               >
                 TA1VAL
               </a>
-              {" "}tarafından geliştirilmiştir.
+              {locale === "tr" ? " tarafından geliştirilmiştir." : "."}
             </p>
           </div>
         </div>

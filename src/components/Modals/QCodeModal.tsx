@@ -1,4 +1,6 @@
+"use client";
 import React, { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -23,57 +25,26 @@ interface QCodeModalProps {
   onHide: () => void;
 }
 
-const qCodes = [
-  { code: "QRA", meaning: "İstasyon adı nedir?" },
-  { code: "QRB", meaning: "İstasyonunuz ne kadar uzakta?" },
-  { code: "QRG", meaning: "Tam frekansımı söyler misiniz?" },
-  { code: "QRH", meaning: "Frekansım değişiyor mu?" },
-  { code: "QRI", meaning: "Gönderme tonunuz nasıl?" },
-  { code: "QRJ", meaning: "Sinyallerim zayıf mı?" },
-  { code: "QRK", meaning: "Sinyallerimin anlaşılırlığı nasıl?" },
-  { code: "QRL", meaning: "Meşgul müsünüz?" },
-  { code: "QRM", meaning: "Parazit/enterferans alıyor musunuz?" },
-  { code: "QRN", meaning: "Atmosferik parazit var mı?" },
-  { code: "QRO", meaning: "Gücümü artırayım mı?" },
-  { code: "QRP", meaning: "Gücümü azaltayım mı?" },
-  { code: "QRQ", meaning: "Daha hızlı göndereyim mi?" },
-  { code: "QRS", meaning: "Daha yavaş göndereyim mi?" },
-  { code: "QRT", meaning: "Göndermeyi durdurayım mı?" },
-  { code: "QRU", meaning: "Benim için mesajınız var mı?" },
-  { code: "QRV", meaning: "Hazır mısınız?" },
-  { code: "QRW", meaning: "... ile haberleşeceğimi bildireyim mi?" },
-  { code: "QRX", meaning: "Tekrar ne zaman arayacaksınız?" },
-  { code: "QRY", meaning: "Sıram kaç?" },
-  { code: "QRZ", meaning: "Beni kim arıyor?" },
-  { code: "QSA", meaning: "Sinyallerim kuvveti nedir?" },
-  { code: "QSB", meaning: "Sinyallerim fading yapıyor mu?" },
-  { code: "QSD", meaning: "Telgrafım kusurlu mu?" },
-  { code: "QSG", meaning: "Telgrafları toplu göndereyim mi?" },
-  { code: "QSK", meaning: "Araya girebilir miyim?" },
-  { code: "QSL", meaning: "Alındığını onaylar mısınız?" },
-  { code: "QSM", meaning: "Son telgrafı tekrar eder misiniz?" },
-  { code: "QSN", meaning: "Beni duyabildiniz mi?" },
-  { code: "QSO", meaning: "Direkt haberleşebilir misiniz?" },
-  { code: "QSP", meaning: "... ya iletin" },
-  { code: "QSQ", meaning: "Doktor/tıbbi yardım var mı?" },
-  { code: "QST", meaning: "Genel çağrı" },
-  { code: "QSU", meaning: "Bu frekansta göndereyim mi?" },
-  { code: "QSV", meaning: "Ayar için V harfi göndereyim mi?" },
-  { code: "QSW", meaning: "Bu frekansta gönderecek misiniz?" },
-  { code: "QSX", meaning: "... frekansı dinliyorum" },
-  { code: "QSY", meaning: "Başka frekansa geçeyim mi?" },
-  { code: "QSZ", meaning: "Her kelimeyi tekrar edeyim mi?" },
-  { code: "QTA", meaning: "Son telgrafı iptal edin" },
-  { code: "QTC", meaning: "Kaç mesajınız var?" },
-  { code: "QTH", meaning: "Konumunuz nedir?" },
-  { code: "QTR", meaning: "Tam saat kaç?" },
-  { code: "QTU", meaning: "Çalışma saatleri nedir?" },
-  { code: "QTX", meaning: "Başka bildirim olana kadar açık tutun" },
-  { code: "QUA", meaning: "... haberlerim var" },
+// Q-code list - meanings will be translated dynamically
+const qCodesList = [
+  "QRA", "QRB", "QRG", "QRH", "QRI", "QRK", "QRL", "QRM", "QRN", "QRO",
+  "QRP", "QRQ", "QRS", "QRT", "QRU", "QRV", "QRW", "QRX", "QRZ", "QSA",
+  "QSB", "QSD", "QSG", "QSK", "QSL", "QSM", "QSN", "QSO", "QSP", "QSU",
+  "QSV", "QSW", "QSX", "QSY", "QSZ", "QTA", "QTB", "QTC", "QTH", "QTI",
+  "QTR", "QTS", "QTU", "QTX", "QUA", "QUC", "QUD", "QUE"
 ];
 
 const QCodeModal: React.FC<QCodeModalProps> = ({ show, onHide }) => {
+  const t = useTranslations();
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Generate Q-codes array with translated meanings
+  const qCodes = useMemo(() => {
+    return qCodesList.map(code => ({
+      code,
+      meaning: t(`qcodes.${code}`)
+    }));
+  }, [t]);
 
   const filteredQCodes = useMemo(() => {
     if (!searchTerm) return qCodes;
@@ -82,7 +53,7 @@ const QCodeModal: React.FC<QCodeModalProps> = ({ show, onHide }) => {
         qCode.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         qCode.meaning.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-  }, [searchTerm]);
+  }, [searchTerm, qCodes]);
 
   return (
     <Dialog open={show} onOpenChange={onHide}>
@@ -90,7 +61,7 @@ const QCodeModal: React.FC<QCodeModalProps> = ({ show, onHide }) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HelpCircle />
-            Q Kodları Referansı
+            {t("modals.qcodes.title")}
           </DialogTitle>
         </DialogHeader>
         <DialogBody className="space-y-6">
@@ -98,7 +69,7 @@ const QCodeModal: React.FC<QCodeModalProps> = ({ show, onHide }) => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Q kodu veya anlamında ara..."
+              placeholder={t("modals.qcodes.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -108,8 +79,8 @@ const QCodeModal: React.FC<QCodeModalProps> = ({ show, onHide }) => {
             <Table>
               <TableHeader className="sticky top-0">
                 <TableRow>
-                  <TableHead className="w-[100px]">Q Kodu</TableHead>
-                  <TableHead>Anlamı</TableHead>
+                  <TableHead className="w-[100px]">{t("modals.qcodes.headers.code")}</TableHead>
+                  <TableHead>{t("modals.qcodes.headers.meaning")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

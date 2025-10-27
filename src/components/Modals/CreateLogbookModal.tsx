@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,7 @@ interface CreateLogbookModalProps {
 }
 
 const CreateLogbookModal: React.FC<CreateLogbookModalProps> = ({ show, onHide }) => {
+  const t = useTranslations();
   const { showToast } = useToast();
   const { createLogbook, setCurrentLogbook } = useQSO();
   const [logbookName, setLogbookName] = useState("");
@@ -32,14 +34,14 @@ const CreateLogbookModal: React.FC<CreateLogbookModalProps> = ({ show, onHide })
 
   const handleCreate = async () => {
     if (!logbookName.trim()) {
-      showToast("Logbook adı gereklidir", "warning");
+      showToast(t("validation.required.logbookName"), "warning");
       return;
     }
 
     setIsCreating(true);
     try {
       const newLogbook = await createLogbook(logbookName.trim());
-      showToast(`"${logbookName.trim()}" logbook'u oluşturuldu`, "success");
+      showToast(t("validation.success.logbookCreated", { name: logbookName.trim() }), "success");
 
       // Auto-select the newly created logbook
       // Pass the object directly instead of searching by ID
@@ -51,11 +53,11 @@ const CreateLogbookModal: React.FC<CreateLogbookModalProps> = ({ show, onHide })
 
       // Handle specific error messages
       if (error.message.includes("already exists")) {
-        showToast("Bu isimde bir logbook zaten mevcut", "error");
+        showToast(t("validation.error.logbookExists"), "error");
       } else if (error.message.includes("too long")) {
-        showToast("Logbook adı çok uzun (maksimum 100 karakter)", "error");
+        showToast(t("validation.error.logbookNameTooLong"), "error");
       } else {
-        showToast("Logbook oluşturulurken hata oluştu", "error");
+        showToast(t("validation.error.logbookCreateFailed"), "error");
       }
     } finally {
       setIsCreating(false);
@@ -74,33 +76,33 @@ const CreateLogbookModal: React.FC<CreateLogbookModalProps> = ({ show, onHide })
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="w-5 h-5" />
-            Yeni Logbook Oluştur
+            {t("modals.createLogbook.title")}
           </DialogTitle>
         </DialogHeader>
         <DialogBody>
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="logbook-name">Logbook Adı</Label>
+            <Label htmlFor="logbook-name">{t("modals.createLogbook.nameLabel")}</Label>
             <Input
               id="logbook-name"
               type="text"
               value={logbookName}
               onChange={(e) => setLogbookName(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Örn: Contest 2025, POTA Aktivasyonları"
+              placeholder={t("modals.createLogbook.placeholder")}
               maxLength={100}
               disabled={isCreating}
               autoFocus
             />
             <p className="text-sm text-muted-foreground">
-              Logbook&apos;larınızı düzenlemek için anlamlı isimler kullanın
+              {t("modals.createLogbook.helperText")}
             </p>
           </div>
         </div>
         </DialogBody>
         <DialogFooter>
           <Button variant="secondary" onClick={handleClose} disabled={isCreating}>
-            İptal
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={handleCreate}
@@ -109,12 +111,12 @@ const CreateLogbookModal: React.FC<CreateLogbookModalProps> = ({ show, onHide })
             {isCreating ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Oluşturuluyor...
+                {t("modals.createLogbook.creating")}
               </>
             ) : (
               <>
                 <Plus className="w-4 h-4" />
-                Oluştur
+                {t("modals.createLogbook.create")}
               </>
             )}
           </Button>

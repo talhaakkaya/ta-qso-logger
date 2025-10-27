@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +18,7 @@ import { useQSO } from "@/contexts/QSOContext";
 import { Filter, Search, X, XCircle } from "lucide-react";
 
 const FilterSection: React.FC = () => {
+  const t = useTranslations();
   const { filters, setFilters, clearFilters, qsoRecords } = useQSO();
 
   const years = React.useMemo(() => {
@@ -28,18 +32,18 @@ const FilterSection: React.FC = () => {
   }, [qsoRecords]);
 
   const months = [
-    { value: "01", label: "Ocak" },
-    { value: "02", label: "Şubat" },
-    { value: "03", label: "Mart" },
-    { value: "04", label: "Nisan" },
-    { value: "05", label: "Mayıs" },
-    { value: "06", label: "Haziran" },
-    { value: "07", label: "Temmuz" },
-    { value: "08", label: "Ağustos" },
-    { value: "09", label: "Eylül" },
-    { value: "10", label: "Ekim" },
-    { value: "11", label: "Kasım" },
-    { value: "12", label: "Aralık" },
+    { value: "01", label: t("filters.months.january") },
+    { value: "02", label: t("filters.months.february") },
+    { value: "03", label: t("filters.months.march") },
+    { value: "04", label: t("filters.months.april") },
+    { value: "05", label: t("filters.months.may") },
+    { value: "06", label: t("filters.months.june") },
+    { value: "07", label: t("filters.months.july") },
+    { value: "08", label: t("filters.months.august") },
+    { value: "09", label: t("filters.months.september") },
+    { value: "10", label: t("filters.months.october") },
+    { value: "11", label: t("filters.months.november") },
+    { value: "12", label: t("filters.months.december") },
   ];
 
   const handleYearChange = (year: string | undefined) => {
@@ -62,7 +66,7 @@ const FilterSection: React.FC = () => {
         <div className="flex justify-between items-center mb-4">
           <h5 className="mb-0 flex items-center gap-2 text-lg font-semibold">
             <Filter className="w-5 h-5" />
-            Filtreler
+            {t("filters.title")}
           </h5>
           {hasActiveFilters && (
             <Button
@@ -71,7 +75,7 @@ const FilterSection: React.FC = () => {
               onClick={clearFilters}
             >
               <XCircle className="w-4 h-4 mr-1" />
-              Temizle
+              {t("common.clear")}
             </Button>
           )}
         </div>
@@ -79,10 +83,10 @@ const FilterSection: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="md:col-span-3">
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Yıl</Label>
+              <Label className="text-sm text-muted-foreground">{t("filters.year")}</Label>
               <Select value={filters.year || undefined} onValueChange={handleYearChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Tüm Yıllar" />
+                  <SelectValue placeholder={t("filters.allYears")} />
                 </SelectTrigger>
                 <SelectContent>
                   {years.map((year) => (
@@ -97,10 +101,10 @@ const FilterSection: React.FC = () => {
 
           <div className="md:col-span-3">
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Ay</Label>
+              <Label className="text-sm text-muted-foreground">{t("filters.month")}</Label>
               <Select value={filters.month || undefined} onValueChange={handleMonthChange} disabled={!filters.year}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Tüm Aylar" />
+                  <SelectValue placeholder={t("filters.allMonths")} />
                 </SelectTrigger>
                 <SelectContent>
                   {months.map((month) => (
@@ -115,12 +119,12 @@ const FilterSection: React.FC = () => {
 
           <div className="md:col-span-6">
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Genel Arama</Label>
+              <Label className="text-sm text-muted-foreground">{t("filters.generalSearch")}</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Tüm alanlarda ara..."
+                  placeholder={t("filters.searchPlaceholder")}
                   value={filters.searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10"
@@ -134,10 +138,10 @@ const FilterSection: React.FC = () => {
           <div className="mt-4 flex flex-wrap gap-2">
             {filters.year && (
               <Badge className="flex items-center gap-2 px-3 py-1">
-                Filtre: {filters.year}
+                {t("filters.filterLabel")} {filters.year}
                 <button
                   onClick={() => setFilters({ year: "" })}
-                  aria-label="Yıl filtresini temizle"
+                  aria-label={t("filters.aria.clearYear")}
                   className="hover:bg-white/20 rounded-full p-0.5"
                 >
                   <X className="w-3 h-3" />
@@ -146,10 +150,10 @@ const FilterSection: React.FC = () => {
             )}
             {filters.month && (
               <Badge className="flex items-center gap-2 px-3 py-1">
-                Filtre: {months.find((m) => m.value === filters.month)?.label}
+                {t("filters.filterLabel")} {months.find((m) => m.value === filters.month)?.label}
                 <button
                   onClick={() => setFilters({ month: "" })}
-                  aria-label="Ay filtresini temizle"
+                  aria-label={t("filters.aria.clearMonth")}
                   className="hover:bg-white/20 rounded-full p-0.5"
                 >
                   <X className="w-3 h-3" />
@@ -158,10 +162,10 @@ const FilterSection: React.FC = () => {
             )}
             {filters.searchTerm && (
               <Badge className="flex items-center gap-2 px-3 py-1">
-                Arama: {filters.searchTerm}
+                {t("filters.searchLabel")} {filters.searchTerm}
                 <button
                   onClick={() => setFilters({ searchTerm: "" })}
-                  aria-label="Aramayı temizle"
+                  aria-label={t("filters.aria.clearSearch")}
                   className="hover:bg-white/20 rounded-full p-0.5"
                 >
                   <X className="w-3 h-3" />

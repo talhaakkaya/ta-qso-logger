@@ -1,5 +1,6 @@
 import { QSORecord } from "@/types";
 import { QSOValidationError } from "@/types/qso.types";
+import { toCallsignCase } from "./stringUtils";
 
 export const validateCallsign = (callsign: string): boolean => {
   // Basic callsign validation - can be enhanced with regex
@@ -8,17 +9,30 @@ export const validateCallsign = (callsign: string): boolean => {
 
 export const validateQSORecord = (
   record: Partial<QSORecord>,
+  t?: (key: string) => string,
 ): QSOValidationError[] => {
   const errors: QSOValidationError[] = [];
 
+  // Fallback to English if no translation function provided
+  const getMessage = (key: string, fallback: string) => t ? t(key) : fallback;
+
   if (!record.datetime) {
-    errors.push({ field: "datetime", message: "Tarih ve saat gereklidir" });
+    errors.push({
+      field: "datetime",
+      message: getMessage("validation.required.dateAndTime", "Date and time are required")
+    });
   }
 
   if (!record.callsign) {
-    errors.push({ field: "callsign", message: "Çağrı işareti gereklidir" });
+    errors.push({
+      field: "callsign",
+      message: getMessage("validation.required.callsign", "Callsign is required")
+    });
   } else if (!validateCallsign(record.callsign)) {
-    errors.push({ field: "callsign", message: "Geçersiz çağrı işareti" });
+    errors.push({
+      field: "callsign",
+      message: getMessage("validation.invalid.callsign", "Invalid callsign")
+    });
   }
 
   return errors;
@@ -40,5 +54,5 @@ export const sanitizeInput = (str: string): string => {
 };
 
 export const toUpperCase = (str: string): string => {
-  return str.toUpperCase();
+  return toCallsignCase(str);
 };

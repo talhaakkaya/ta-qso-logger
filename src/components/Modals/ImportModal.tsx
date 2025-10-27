@@ -1,4 +1,6 @@
+"use client";
 import React, { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +30,7 @@ interface ImportModalProps {
 }
 
 const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
+  const t = useTranslations();
   const { showToast } = useToast();
   const { importFromADIF, logbooks, currentLogbook, setCurrentLogbook } = useQSO();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -53,7 +56,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
     if (file) {
       // Validate file extension
       if (!file.name.endsWith(".adi") && !file.name.endsWith(".adif")) {
-        showToast("Lütfen geçerli bir ADIF dosyası seçin (.adi veya .adif)", "error");
+        showToast(t("validation.invalid.adifFile"), "error");
         return;
       }
       setSelectedFile(file);
@@ -63,12 +66,12 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
 
   const handleImport = async () => {
     if (!selectedFile) {
-      showToast("Lütfen bir dosya seçin", "warning");
+      showToast(t("validation.required.file"), "warning");
       return;
     }
 
     if (!selectedLogbookId) {
-      showToast("Lütfen bir logbook seçin", "warning");
+      showToast(t("validation.required.logbook"), "warning");
       return;
     }
 
@@ -84,11 +87,11 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
           if (result.errorMessages && result.errorMessages.length > 0) {
             showToast(result.errorMessages.join(", "), "warning");
           } else {
-            showToast("Tüm kayıtlar tekrarlayan kayıt olarak atlandı", "warning");
+            showToast(t("modals.import.allDuplicates"), "warning");
           }
         } else {
           // Some records imported
-          let message = `${result.imported} kayıt başarıyla içe aktarıldı`;
+          let message = t("modals.import.recordsImported", { count: result.imported });
           if (result.errorMessages && result.errorMessages.length > 0) {
             message += `. ${result.errorMessages.join(", ")}`;
           }
@@ -105,11 +108,11 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
           handleClose();
         }, 2000);
       } else {
-        showToast("İçe aktarma başarısız oldu", "error");
+        showToast(t("modals.import.importFailed"), "error");
       }
     } catch (error) {
       console.error("Import error:", error);
-      showToast("İçe aktarma sırasında hata oluştu", "error");
+      showToast(t("modals.import.importError"), "error");
       setImportResult({
         success: false,
         imported: 0,
@@ -137,13 +140,13 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload className="w-5 h-5" />
-            ADIF İçe Aktar
+            {t("modals.import.title")}
           </DialogTitle>
         </DialogHeader>
         <DialogBody>
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label>ADIF Dosyası Seçin</Label>
+            <Label>{t("modals.import.selectFile")}</Label>
             <Input
               ref={fileInputRef}
               type="file"
@@ -152,12 +155,12 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
               disabled={isImporting}
             />
             <p className="text-sm text-muted-foreground">
-              Desteklenen formatlar: .adi, .adif (ADIF 3.1.4)
+              {t("modals.import.supportedFormats")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label>Hedef Logbook</Label>
+            <Label>{t("modals.import.targetLogbook")}</Label>
             <Select
               value={selectedLogbookId}
               onValueChange={setSelectedLogbookId}
@@ -166,7 +169,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
               <SelectTrigger className="w-full">
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
-                  <SelectValue placeholder="Logbook seçin" />
+                  <SelectValue placeholder={t("modals.import.selectLogbook")} />
                 </div>
               </SelectTrigger>
               <SelectContent>
@@ -183,7 +186,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground">
-              QSO kayıtları bu logbook&apos;a aktarılacak
+              {t("modals.import.recordsWillBeImported")}
             </p>
           </div>
 
@@ -191,7 +194,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
             <Alert>
               <Info className="w-4 h-4" />
               <AlertDescription>
-                Seçilen dosya: <strong>{selectedFile.name}</strong> (
+                {t("modals.import.selectedFile")} <strong>{selectedFile.name}</strong> (
                 {(selectedFile.size / 1024).toFixed(2)} KB)
               </AlertDescription>
             </Alert>
@@ -203,21 +206,21 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
               <AlertDescription>
                 <div className="space-y-2">
                   <div className="font-semibold">
-                    {importResult.success ? "Başarılı!" : "Hata!"}
+                    {importResult.success ? t("modals.import.success") : t("modals.import.error")}
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
-                    İçe aktarılan: <strong>{importResult.imported}</strong> kayıt
+                    {t("modals.import.imported")} <strong>{importResult.imported}</strong> {t("modals.import.records")}
                   </div>
                   {importResult.errors > 0 && (
                     <div className="flex items-center gap-2">
                       <XCircle className="w-4 h-4" />
-                      Hatalı: <strong>{importResult.errors}</strong> kayıt
+                      {t("modals.import.failed")} <strong>{importResult.errors}</strong> {t("modals.import.records")}
                     </div>
                   )}
                   {importResult.errorMessages && importResult.errorMessages.length > 0 && (
                     <div className="mt-2">
-                      <div className="text-sm font-semibold mb-1">Hata mesajları:</div>
+                      <div className="text-sm font-semibold mb-1">{t("modals.import.errorMessages")}</div>
                       <ul className="list-disc list-inside text-sm space-y-1">
                         {importResult.errorMessages.map((msg, idx) => (
                           <li key={idx}>{msg}</li>
@@ -233,7 +236,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
         </DialogBody>
         <DialogFooter>
           <Button variant="secondary" onClick={handleClose} disabled={isImporting}>
-            {importResult?.success ? "Kapat" : "İptal"}
+            {importResult?.success ? t("common.close") : t("common.cancel")}
           </Button>
           <Button
             onClick={handleImport}
@@ -242,12 +245,12 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
             {isImporting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                İçe Aktarılıyor...
+                {t("modals.import.importing")}
               </>
             ) : (
               <>
                 <Upload className="w-4 h-4 mr-1" />
-                İçe Aktar
+                {t("modals.import.import")}
               </>
             )}
           </Button>

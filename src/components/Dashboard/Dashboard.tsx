@@ -1,10 +1,14 @@
+"use client";
+
 import React from "react";
+import { useTranslations } from "next-intl";
 import StatsCard from "./StatsCard";
 import { useQSO } from "@/contexts/QSOContext";
 import { getCurrentDateTime } from "@/utils/dateUtils";
 import { Radio, Filter, IdCard, CalendarCheck } from "lucide-react";
 
 const Dashboard: React.FC = () => {
+  const t = useTranslations();
   const { qsoRecords, filteredRecords } = useQSO();
 
   const getUniqueCallsigns = () => {
@@ -23,25 +27,25 @@ const Dashboard: React.FC = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <StatsCard
-        title="Toplam QSO"
+        title={t("qso.totalQso")}
         value={qsoRecords.length}
         icon={Radio}
         color="blue"
       />
       <StatsCard
-        title="Filtrelenmiş"
+        title={t("qso.filtered")}
         value={filteredRecords.length}
         icon={Filter}
         color="purple"
       />
       <StatsCard
-        title="Benzersiz Çağrı İşaretleri"
+        title={t("qso.uniqueCallsigns")}
         value={getUniqueCallsigns()}
         icon={IdCard}
         color="green"
       />
       <StatsCard
-        title="Bugünkü QSO"
+        title={t("qso.todayQso")}
         value={getTodayQSOs()}
         icon={CalendarCheck}
         color="orange"

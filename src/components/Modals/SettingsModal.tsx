@@ -1,4 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +28,7 @@ import {
   TIMEZONE_OPTIONS,
   UserSettings,
 } from "@/utils/settingsUtils";
+import { toCallsignCase } from "@/utils/stringUtils";
 import { Settings, Trash2, Check, Loader2 } from "lucide-react";
 
 interface SettingsModalProps {
@@ -33,6 +37,7 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
+  const t = useTranslations();
   const { showToast } = useToast();
   const { deleteAllQSORecords } = useQSO();
   const { data: profileData } = useProfile();
@@ -82,11 +87,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
         gridSquare: settings.gridSquare,
       });
 
-      showToast("Ayarlar kaydedildi", "success");
+      showToast(t("validation.success.settingsSaved"), "success");
       onHide();
     } catch (error) {
       console.error("Failed to save settings:", error);
-      showToast("Ayarlar kaydedilirken hata oluştu", "error");
+      showToast(t("validation.error.settingsSaveFailed"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -118,24 +123,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings />
-            Ayarlar
+            {t("modals.settings.title")}
           </DialogTitle>
         </DialogHeader>
         <DialogBody>
         <div className="space-y-6">
           {/* Station Callsign */}
           <div className="space-y-2">
-            <Label>İstasyon Çağrı İşareti</Label>
+            <Label>{t("modals.settings.stationCallsign")}</Label>
             <Input
               type="text"
               value={settings.stationCallsign}
               onChange={(e) =>
                 setSettings((prev) => ({
                   ...prev,
-                  stationCallsign: e.target.value.toUpperCase(),
+                  stationCallsign: toCallsignCase(e.target.value),
                 }))
               }
-              placeholder="TA1ABC"
+              placeholder={t("qso.placeholders.callsign")}
               maxLength={15}
               disabled={isLoading}
             />
@@ -143,17 +148,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
 
           {/* Grid Square */}
           <div className="space-y-2">
-            <Label>Grid Square (Maidenhead Locator)</Label>
+            <Label>{t("modals.settings.gridSquare")}</Label>
             <Input
               type="text"
               value={settings.gridSquare}
               onChange={(e) =>
                 setSettings((prev) => ({
                   ...prev,
-                  gridSquare: e.target.value.toUpperCase(),
+                  gridSquare: toCallsignCase(e.target.value),
                 }))
               }
-              placeholder="KM38ab"
+              placeholder={t("qso.placeholders.gridSquare")}
               maxLength={8}
               disabled={isLoading}
             />
@@ -161,7 +166,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
 
           {/* Default Power */}
           <div className="space-y-2">
-            <Label>Varsayılan Güç (W)</Label>
+            <Label>{t("modals.settings.defaultPower")}</Label>
             <Input
               type="number"
               step="0.1"
@@ -173,13 +178,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
                   defaultTxPower: parseFloat(e.target.value) || 0,
                 }))
               }
-              placeholder="5"
+              placeholder={t("qso.placeholders.power")}
             />
           </div>
 
           {/* User Mode */}
           <div className="space-y-2">
-            <Label>Kullanım Modu</Label>
+            <Label>{t("modals.settings.usageMode")}</Label>
             <RadioGroup
               value={settings.mode}
               onValueChange={(value) =>
@@ -190,13 +195,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="simple" id="mode-simple" />
                 <Label htmlFor="mode-simple" className="cursor-pointer font-normal">
-                  Basit Mod
+                  {t("modals.settings.simpleMode")}
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="advanced" id="mode-advanced" />
                 <Label htmlFor="mode-advanced" className="cursor-pointer font-normal">
-                  Gelişmiş Mod
+                  {t("modals.settings.advancedMode")}
                 </Label>
               </div>
             </RadioGroup>
@@ -204,7 +209,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
 
           {/* Timezone */}
           <div className="space-y-2">
-            <Label>Saat Dilimi</Label>
+            <Label>{t("modals.settings.timezone")}</Label>
             <Select
               value={settings.timezone.value}
               onValueChange={(value) => {
@@ -229,7 +234,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
 
           {/* Danger Zone */}
           <div className="pt-4 border-t space-y-2">
-            <Label className="text-destructive">Tüm QSO Kayıtlarını Sil</Label>
+            <Label className="text-destructive">{t("modals.settings.deleteAllRecords")}</Label>
             {!showDeleteConfirm ? (
               <Button
                 variant="outline"
@@ -238,12 +243,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
                 className="text-destructive w-full"
               >
                 <Trash2 />
-                Tüm Kayıtları Sil
+                {t("modals.settings.deleteAllButton")}
               </Button>
             ) : (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Bu işlem geri alınamaz. Emin misiniz?
+                  {t("modals.settings.deleteWarning")}
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -253,7 +258,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
                     disabled={isDeleting}
                     className="flex-1"
                   >
-                    İptal
+                    {t("common.cancel")}
                   </Button>
                   <Button
                     variant="destructive"
@@ -265,12 +270,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
                     {isDeleting ? (
                       <>
                         <Loader2 className="animate-spin" />
-                        Siliniyor...
+                        {t("common.deleting")}
                       </>
                     ) : (
                       <>
                         <Trash2 />
-                        Evet, Sil
+                        {t("modals.settings.confirmDelete")}
                       </>
                     )}
                   </Button>
@@ -282,18 +287,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
         </DialogBody>
         <DialogFooter>
           <Button variant="secondary" onClick={handleClose} disabled={isLoading}>
-            İptal
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleSave} disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="animate-spin" />
-                Kaydediliyor...
+                {t("common.saving")}
               </>
             ) : (
               <>
                 <Check />
-                Kaydet
+                {t("common.save")}
               </>
             )}
           </Button>

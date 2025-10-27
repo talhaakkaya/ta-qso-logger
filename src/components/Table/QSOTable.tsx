@@ -1,4 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -24,6 +27,7 @@ import {
 import { getColumns } from "./columns";
 
 const QSOTable: React.FC = () => {
+  const t = useTranslations();
   const { filteredRecords, isLoading, currentLogbook } = useQSO();
   const userMode = useUserMode();
   const qsoModal = useModal<QSORecord>();
@@ -68,6 +72,7 @@ const QSOTable: React.FC = () => {
     userMode,
     onEdit: handleOpenEditModal,
     onDelete: handleDeleteClick,
+    t,
   });
 
   const table = useReactTable({
@@ -97,15 +102,15 @@ const QSOTable: React.FC = () => {
         <CardHeader className="bg-muted/50 flex flex-row justify-between items-center py-4">
           <h5 className="mb-0 flex items-center gap-2 text-lg font-semibold">
             <TableIcon className="w-5 h-5" />
-            QSO Kayıtları
+            {t("qso.qsoRecords")}
           </h5>
           <Button
             size="sm"
             onClick={handleOpenAddModal}
-            title="Yeni QSO Ekle"
+            title={t("qso.newQso")}
           >
             <PlusCircle />
-            Yeni QSO
+            {t("qso.newQso")}
           </Button>
         </CardHeader>
         <CardContent className="p-0">
@@ -271,7 +276,10 @@ const QSOTable: React.FC = () => {
               {table.getRowModel().rows.length} / {table.getFilteredRowModel().rows.length}
             </span>
             <span className="hidden sm:inline">
-              {table.getFilteredRowModel().rows.length} kayıttan {table.getRowModel().rows.length} tanesi gösteriliyor
+              {t("common.showingRecords", {
+                count: table.getRowModel().rows.length,
+                total: table.getFilteredRowModel().rows.length
+              })}
             </span>
           </div>
           <div className="flex items-center space-x-2">
@@ -281,10 +289,10 @@ const QSOTable: React.FC = () => {
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              Önceki
+              {t("common.previous")}
             </Button>
             <div className="text-sm text-muted-foreground">
-              Sayfa {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+              {t("common.page")} {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
             </div>
             <Button
               variant="outline"
@@ -292,7 +300,7 @@ const QSOTable: React.FC = () => {
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              Sonraki
+              {t("common.next")}
             </Button>
           </div>
         </div>

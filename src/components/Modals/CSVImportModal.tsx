@@ -1,4 +1,6 @@
-import React, { useState, useRef } from "react";
+"use client";
+import React, { useState, useRef, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import Papa from "papaparse";
 import {
   Dialog,
@@ -51,25 +53,27 @@ type QSOField =
   | "notes"
   | "skip";
 
-const QSO_FIELDS: { value: QSOField; label: string }[] = [
-  { value: "skip", label: "(Atla)" },
-  { value: "callsign", label: "Çağrı İşareti *" },
-  { value: "datetime", label: "Tarih/Saat (Birleşik)" },
-  { value: "date", label: "Tarih *" },
-  { value: "time", label: "Saat *" },
-  { value: "name", label: "İsim" },
-  { value: "freq", label: "Frekans (MHz)" },
-  { value: "mode", label: "Mod" },
-  { value: "txPower", label: "Güç (W)" },
-  { value: "rstSent", label: "RST Gönderilen" },
-  { value: "rstReceived", label: "RST Alınan" },
-  { value: "qth", label: "QTH/Konum" },
-  { value: "notes", label: "Notlar" },
-];
-
 const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
+  const t = useTranslations();
   const { showToast } = useToast();
   const { importFromCSV, logbooks, currentLogbook, setCurrentLogbook } = useQSO();
+
+  // Create QSO fields array with translations
+  const QSO_FIELDS = useMemo(() => [
+    { value: "skip" as QSOField, label: t("common.skip") },
+    { value: "callsign" as QSOField, label: `${t("qso.fields.callsign")} *` },
+    { value: "datetime" as QSOField, label: t("qso.fields.datetimeCombined") },
+    { value: "date" as QSOField, label: t("qso.fields.dateOnly") },
+    { value: "time" as QSOField, label: t("qso.fields.timeOnly") },
+    { value: "name" as QSOField, label: t("qso.fields.name") },
+    { value: "freq" as QSOField, label: t("qso.fields.frequency") },
+    { value: "mode" as QSOField, label: t("qso.fields.mode") },
+    { value: "txPower" as QSOField, label: t("qso.fields.power") },
+    { value: "rstSent" as QSOField, label: t("qso.fields.rstSent") },
+    { value: "rstReceived" as QSOField, label: t("qso.fields.rstReceived") },
+    { value: "qth" as QSOField, label: t("qso.fields.qth") },
+    { value: "notes" as QSOField, label: t("qso.fields.notes") },
+  ], [t]);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedLogbookId, setSelectedLogbookId] = useState<string>("");
@@ -95,7 +99,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.name.endsWith(".csv")) {
-        showToast("Lütfen geçerli bir CSV dosyası seçin (.csv)", "error");
+        showToast(t("modals.import.invalidCsvFile"), "error");
         return;
       }
       setSelectedFile(file);
@@ -108,7 +112,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
       complete: (results) => {
         const data = results.data as string[][];
         if (data.length < 2) {
-          showToast("CSV dosyası en az başlık ve bir veri satırı içermelidir", "error");
+          showToast(t("modals.import.csvMinRows"), "error");
           return;
         }
 
@@ -127,7 +131,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
         setStep(2);
       },
       error: (error) => {
-        showToast(`CSV ayrıştırma hatası: ${error.message}`, "error");
+        showToast(t("modals.import.csvParseError", { error: error.message }), "error");
       },
     });
   };
@@ -143,14 +147,14 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
     if (!parsedData) return;
 
     if (!selectedLogbookId) {
-      showToast("Lütfen bir logbook seçin", "warning");
+      showToast(t("validation.required.logbook"), "warning");
       return;
     }
 
     // Validate required fields are mapped using CSV service
     const validation = csvService.validateCSVMapping(columnMapping);
     if (!validation.valid) {
-      showToast(validation.message || "Geçersiz sütun eşleştirmesi", "error");
+      showToast(validation.message || t("modals.import.invalidMapping"), "error");
       return;
     }
 
@@ -163,11 +167,11 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
 
       if (result.success) {
         if (result.imported === 0) {
-          showToast(result.errorMessages?.[0] || "İçe aktarma başarısız", "warning");
+          showToast(result.errorMessages?.[0] || t("modals.import.importFailed"), "warning");
         } else {
-          let message = `${result.imported} kayıt başarıyla içe aktarıldı`;
+          let message = t("modals.import.recordsImported", { count: result.imported });
           if (result.errors > 0) {
-            message += `, ${result.errors} kayıt atlandı`;
+            message = t("modals.import.recordsImportedWithErrors", { count: result.imported, errors: result.errors });
           }
           showToast(message, "success");
 
@@ -181,11 +185,11 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
           }, 2000);
         }
       } else {
-        showToast("İçe aktarma başarısız oldu", "error");
+        showToast(t("modals.import.importFailed"), "error");
       }
     } catch (error) {
       console.error("Import error:", error);
-      showToast("İçe aktarma sırasında hata oluştu", "error");
+      showToast(t("modals.import.importError"), "error");
       setImportResult({
         success: false,
         imported: 0,
@@ -222,9 +226,9 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
           <DialogTitle className="flex items-center gap-2 flex-wrap">
             <FileSpreadsheet className="shrink-0" />
             <span>
-              CSV İçe Aktar
-              {step === 2 && " - Sütun Eşleştirme"}
-              {step === 3 && " - Sonuç"}
+              {t("modals.import.csvTitle")}
+              {step === 2 && ` - ${t("modals.import.columnMapping")}`}
+              {step === 3 && ` - ${t("modals.import.result")}`}
             </span>
           </DialogTitle>
         </DialogHeader>
@@ -234,7 +238,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
           {step === 1 && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>CSV Dosyası Seçin</Label>
+                <Label>{t("modals.import.selectCsvFile")}</Label>
                 <Input
                   ref={fileInputRef}
                   type="file"
@@ -242,12 +246,12 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
                   onChange={handleFileSelect}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Desteklenen format: .csv (UTF-8 kodlamalı)
+                  {t("modals.import.csvSupportedFormat")}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label>Hedef Logbook</Label>
+                <Label>{t("modals.import.targetLogbook")}</Label>
                 <Select
                   value={selectedLogbookId}
                   onValueChange={setSelectedLogbookId}
@@ -255,7 +259,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
                   <SelectTrigger className="w-full">
                     <div className="flex items-center gap-2">
                       <BookOpen className="h-4 w-4" />
-                      <SelectValue placeholder="Logbook seçin" />
+                      <SelectValue placeholder={t("modals.import.selectLogbook")} />
                     </div>
                   </SelectTrigger>
                   <SelectContent>
@@ -272,7 +276,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground">
-                  QSO kayıtları bu logbook&apos;a aktarılacak
+                  {t("modals.import.recordsWillBeImported")}
                 </p>
               </div>
 
@@ -284,7 +288,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
                       <strong>{selectedFile.name}</strong> ({(selectedFile.size / 1024).toFixed(2)} KB)
                     </div>
                     <div className="mt-1">
-                      {parsedData.headers.length} sütun, {parsedData.rows.length} satır bulundu
+                      {t("modals.import.columnsFound", { columns: parsedData.headers.length, rows: parsedData.rows.length })}
                     </div>
                   </AlertDescription>
                 </Alert>
@@ -298,7 +302,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
               <Alert>
                 <Info className="w-4 h-4" />
                 <AlertDescription>
-                  Her CSV sütununu QSO alanlarıyla eşleştirin. (*) ile işaretli alanlar zorunludur.
+                  {t("modals.import.mappingInfo")}
                 </AlertDescription>
               </Alert>
 
@@ -332,7 +336,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
 
               {/* Preview */}
               <div className="space-y-2">
-                <Label>Önizleme (İlk 3 Satır)</Label>
+                <Label>{t("modals.import.preview")}</Label>
                 <div className="border rounded-md overflow-auto max-h-[150px]">
                   <Table>
                     <TableHeader>
@@ -372,21 +376,21 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
               <AlertDescription>
                 <div className="space-y-2">
                   <div className="font-semibold">
-                    {importResult.success ? "Başarılı!" : "Hata!"}
+                    {importResult.success ? t("modals.import.success") : t("modals.import.error")}
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
-                    İçe aktarılan: <strong>{importResult.imported}</strong> kayıt
+                    {t("modals.import.imported")} <strong>{importResult.imported}</strong> {t("modals.import.records")}
                   </div>
                   {importResult.errors > 0 && (
                     <div className="flex items-center gap-2">
                       <XCircle className="w-4 h-4" />
-                      Hatalı/Atlanan: <strong>{importResult.errors}</strong> kayıt
+                      {t("modals.import.failedOrSkipped")} <strong>{importResult.errors}</strong> {t("modals.import.records")}
                     </div>
                   )}
                   {importResult.errorMessages && importResult.errorMessages.length > 0 && (
                     <div className="mt-2">
-                      <div className="text-sm font-semibold mb-1">Mesajlar:</div>
+                      <div className="text-sm font-semibold mb-1">{t("modals.import.messages")}</div>
                       <ul className="list-disc list-inside text-sm space-y-1">
                         {importResult.errorMessages.slice(0, 5).map((msg, idx) => (
                           <li key={idx}>{msg}</li>
@@ -403,7 +407,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
         <DialogFooter>
           {step === 1 && (
             <Button variant="secondary" onClick={handleClose}>
-              İptal
+              {t("common.cancel")}
             </Button>
           )}
           {step === 2 && (
@@ -416,18 +420,18 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
                   setSelectedFile(null);
                 }}
               >
-                Geri
+                {t("modals.import.back")}
               </Button>
               <Button onClick={handleImport}>
                 <FileSpreadsheet />
-                <span className="hidden sm:inline">İçe Aktar ({parsedData?.rows.length} kayıt)</span>
-                <span className="sm:hidden">İçe Aktar</span>
+                <span className="hidden sm:inline">{t("modals.import.importCount", { count: parsedData?.rows.length || 0 })}</span>
+                <span className="sm:hidden">{t("modals.import.import")}</span>
               </Button>
             </>
           )}
           {step === 3 && (
             <Button onClick={handleClose}>
-              Kapat
+              {t("common.close")}
             </Button>
           )}
         </DialogFooter>

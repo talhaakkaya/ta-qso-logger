@@ -5,12 +5,14 @@
  */
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogBody,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Trash2, Loader2 } from "lucide-react";
@@ -32,42 +34,46 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  const t = useTranslations();
+
   return (
     <Dialog open={show} onOpenChange={onCancel}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="text-destructive" />
-            QSO Kaydını Sil
+            {t("modals.deleteConfirm.title")}
           </DialogTitle>
         </DialogHeader>
-        <div className="py-4">
-          <p className="text-sm text-muted-foreground mb-3">
-            Bu QSO kaydını silmek istediğinizden emin misiniz?
-          </p>
-          {record && (
-            <div className="rounded-md bg-muted p-3 space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Çağrı İşareti:</span>
-                <strong className="text-sm">{record.callsign}</strong>
+        <DialogBody>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {t("modals.deleteConfirm.message")}
+            </p>
+            {record && (
+              <div className="rounded-md bg-muted p-3 space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">{t("modals.deleteConfirm.callsignLabel")}</span>
+                  <strong className="text-sm">{record.callsign}</strong>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">{t("modals.deleteConfirm.dateLabel")}</span>
+                  <span className="text-sm">{formatDateTimeForDisplay(record.datetime)}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Tarih:</span>
-                <span className="text-sm">{formatDateTimeForDisplay(record.datetime)}</span>
-              </div>
-            </div>
-          )}
-          <p className="text-xs text-destructive mt-3">
-            Bu işlem geri alınamaz.
-          </p>
-        </div>
+            )}
+            <p className="text-xs text-destructive">
+              {t("modals.deleteConfirm.warning")}
+            </p>
+          </div>
+        </DialogBody>
         <DialogFooter>
           <Button
             variant="secondary"
             onClick={onCancel}
             disabled={isDeleting}
           >
-            İptal
+            {t("common.cancel")}
           </Button>
           <Button
             variant="destructive"
@@ -77,12 +83,12 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
             {isDeleting ? (
               <>
                 <Loader2 className="animate-spin" />
-                Siliniyor...
+                {t("common.deleting")}
               </>
             ) : (
               <>
                 <Trash2 />
-                Sil
+                {t("common.delete")}
               </>
             )}
           </Button>

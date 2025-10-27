@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,7 @@ import { QSORecord } from "@/types";
 import { formatDateTimeForInput, getCurrentDateTimeString } from "@/utils/dateUtils";
 import { formatDateTimeForDisplay } from "@/utils/settingsUtils";
 import { coordinatesToGridSquare, gridSquareToCoordinates } from "@/utils/gridSquareUtils";
+import { toCallsignCase } from "@/utils/stringUtils";
 import { useToast } from "@/hooks/useToast";
 import { useUserMode } from "@/hooks/useUserMode";
 import { useLocationSearch } from "@/hooks/useLocationSearch";
@@ -37,7 +39,7 @@ const LeafletMap = dynamic(
   () => import("@/components/Map/LeafletMap"),
   {
     ssr: false,
-    loading: () => <div className="text-center p-4">Harita yükleniyor...</div>
+    loading: () => <div className="text-center p-4">{/* Loading handled by component */}</div>
   }
 );
 
@@ -54,6 +56,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
   record,
   onSave,
 }) => {
+  const t = useTranslations();
   const { showToast } = useToast();
   const { stationCallsign, stationGridSquare } = useQSO();
   const userMode = useUserMode();
@@ -191,11 +194,11 @@ const QSOModal: React.FC<QSOModalProps> = ({
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.callsign.trim()) {
-      newErrors.callsign = "Çağrı işareti zorunludur";
+      newErrors.callsign = t("validation.required.callsign");
     }
 
     if (!formData.datetime) {
-      newErrors.datetime = "Tarih/Saat zorunludur";
+      newErrors.datetime = t("validation.required.datetime");
     }
 
     // Validate Grid Square (Maidenhead locator) format if provided
@@ -203,7 +206,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
     if (formData.qth && formData.qth.trim() && userMode === 'advanced') {
       const gridSquarePattern = /^[A-R]{2}[0-9]{2}([a-x]{2}([0-9]{2}([a-x]{2})?)?)?$/i;
       if (!gridSquarePattern.test(formData.qth.trim())) {
-        newErrors.qth = "Geçersiz grid square formatı (örn: JO01aa)";
+        newErrors.qth = t("validation.invalid.gridSquare");
       }
     }
 
@@ -273,10 +276,10 @@ const QSOModal: React.FC<QSOModalProps> = ({
       locationSearch.clearResults();
       setShowLocationSearch(false);
 
-      showToast("Grid square güncellendi", "success");
+      showToast(t("validation.success.gridSquareUpdated"), "success");
     } catch (error) {
       console.error("Grid square conversion error:", error);
-      showToast("Grid square dönüştürülemedi", "error");
+      showToast(t("validation.error.gridSquareUpdateFailed"), "error");
     }
   };
 
@@ -290,10 +293,10 @@ const QSOModal: React.FC<QSOModalProps> = ({
       setFormData((prev) => ({ ...prev, qth: newGridSquare }));
 
       // Show success toast
-      showToast(`Grid square güncellendi: ${newGridSquare}`, "success");
+      showToast(t("validation.success.gridSquareUpdated"), "success");
     } catch (error) {
       console.error("Failed to update grid square from map:", error);
-      showToast("Grid square güncellenemedi", "error");
+      showToast(t("validation.error.gridSquareUpdateFailed"), "error");
     }
   }, [showToast]);
 
@@ -350,7 +353,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
   // Handle QRZ API lookup
   const handleQRZLookup = async () => {
     if (!formData.callsign || !formData.callsign.trim()) {
-      showToast("Lütfen önce çağrı işareti girin", "warning");
+      showToast(t("validation.error.enterCallsignFirst"), "warning");
       return;
     }
 
@@ -359,7 +362,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
       const result = await apiService.lookupCallsign(formData.callsign);
 
       if (!result.success || !result.data) {
-        showToast("Çağrı işareti bulunamadı", "error");
+        showToast(t("validation.error.callsignNotFound"), "error");
         return;
       }
 
@@ -402,25 +405,25 @@ const QSOModal: React.FC<QSOModalProps> = ({
         }
       }
 
-      showToast("QRZ verisi yüklendi", "success");
+      showToast(t("validation.success.qrzDataLoaded"), "success");
     } catch (error: any) {
       console.error("QRZ lookup error:", error);
 
-      // Handle different error status codes with Turkish messages
-      let errorMessage = "QRZ sorgulaması başarısız";
+      // Handle different error status codes
+      let errorMessage = t("validation.error.qrzQueryFailed");
 
       if (error.status === 404) {
-        errorMessage = "Çağrı işareti bulunamadı";
+        errorMessage = t("validation.error.callsignNotFound");
       } else if (error.status === 401) {
-        errorMessage = "Oturum süreniz dolmuş";
+        errorMessage = t("validation.error.sessionExpired");
       } else if (error.status === 429) {
-        errorMessage = "Çok fazla istek";
+        errorMessage = t("validation.error.tooManyRequests");
       } else if (error.status === 500) {
-        errorMessage = "Sunucu hatası";
+        errorMessage = t("validation.error.serverError");
       } else if (error.status === 503) {
-        errorMessage = "QRZ API servisi kullanılamıyor";
+        errorMessage = t("validation.error.qrzServiceUnavailable");
       } else if (error.message && error.message.includes("QRZ API is not configured")) {
-        errorMessage = "QRZ API yapılandırılmamış";
+        errorMessage = t("validation.error.qrzNotConfigured");
       } else if (error.message && !error.message.includes("API request failed")) {
         errorMessage = error.message;
       }
@@ -439,12 +442,12 @@ const QSOModal: React.FC<QSOModalProps> = ({
             {isEditMode ? (
               <>
                 <Pencil className="w-5 h-5" />
-                QSO Düzenle
+                {t("qso.editQso")}
               </>
             ) : (
               <>
                 <Plus className="w-5 h-5" />
-                Yeni QSO
+                {t("qso.newQso")}
               </>
             )}
           </DialogTitle>
@@ -454,7 +457,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
-                Tarih/Saat <span className="text-destructive">*</span>
+                {t("qso.fields.datetime")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 type="datetime-local"
@@ -474,7 +477,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
             </div>
             <div className="space-y-2">
               <Label>
-                Çağrı İşareti <span className="text-destructive">*</span>
+                {t("qso.fields.callsign")} <span className="text-destructive">*</span>
               </Label>
               <div className="flex items-center gap-2">
                 <Input
@@ -484,9 +487,9 @@ const QSOModal: React.FC<QSOModalProps> = ({
                     handleFieldChange("callsign", e.target.value)
                   }
                   onBlur={(e) =>
-                    handleFieldChange("callsign", e.target.value.toUpperCase())
+                    handleFieldChange("callsign", toCallsignCase(e.target.value))
                   }
-                  placeholder="TA1ABC"
+                  placeholder={t("qso.placeholders.callsign")}
                   className={errors.callsign ? "border-destructive flex-1" : "flex-1"}
                 />
                 {formData.callsign && isQRZEnabled && (
@@ -495,7 +498,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
                     size="icon"
                     onClick={handleQRZLookup}
                     disabled={isQRZLookupLoading || !formData.callsign.trim()}
-                    title="QRZ'den bilgi getir"
+                    title={t("qso.tooltips.fetchFromQrz")}
                   >
                     {isQRZLookupLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -516,7 +519,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
                   className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors w-fit"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  QRZ.com&apos;da görüntüle
+                  {t("common.viewOnQrz")}
                 </a>
               )}
             </div>
@@ -524,16 +527,16 @@ const QSOModal: React.FC<QSOModalProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
             <div className="md:col-span-4 space-y-2">
-              <Label>İsim</Label>
+              <Label>{t("qso.fields.name")}</Label>
               <Input
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleFieldChange("name", e.target.value)}
-                placeholder="Ahmet"
+                placeholder={t("qso.placeholders.name")}
               />
             </div>
             <div className="md:col-span-4 space-y-2">
-              <Label>Frekans (MHz)</Label>
+              <Label>{t("qso.fields.frequency")}</Label>
               <Input
                 type="number"
                 step="0.001"
@@ -541,20 +544,20 @@ const QSOModal: React.FC<QSOModalProps> = ({
                 onChange={(e) =>
                   handleFieldChange("freq", parseFloat(e.target.value) || 0)
                 }
-                placeholder="439.200"
+                placeholder={t("qso.placeholders.frequency")}
               />
             </div>
             <div className="md:col-span-4 space-y-2">
-              <Label>{userMode === 'simple' ? 'QTH/Konum' : 'Grid Square'}</Label>
+              <Label>{userMode === 'simple' ? t("qso.fields.qth") : t("qso.fields.gridSquare")}</Label>
               <div className="flex gap-2">
                 <Input
                   type="text"
                   value={formData.qth}
                   onChange={(e) => handleFieldChange("qth", e.target.value)}
                   onBlur={(e) =>
-                    handleFieldChange("qth", userMode === 'advanced' ? e.target.value.toUpperCase() : e.target.value)
+                    handleFieldChange("qth", userMode === 'advanced' ? toCallsignCase(e.target.value) : e.target.value)
                   }
-                  placeholder={userMode === 'simple' ? 'Istanbul, Turkey' : 'JO01aa'}
+                  placeholder={userMode === 'simple' ? t("qso.placeholders.qth") : t("qso.placeholders.gridSquare")}
                   maxLength={userMode === 'simple' ? 100 : 10}
                   className={`${errors.qth ? "border-destructive" : ""} flex-grow`}
                 />
@@ -563,7 +566,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
                     variant="outline"
                     size="icon"
                     onClick={() => setShowLocationSearch(!showLocationSearch)}
-                    title="Konum ara"
+                    title={t("qso.tooltips.searchLocation")}
                   >
                     <MapPin />
                   </Button>
@@ -623,10 +626,10 @@ const QSOModal: React.FC<QSOModalProps> = ({
           {userMode === 'advanced' && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label>Mod</Label>
+                <Label>{t("qso.fields.mode")}</Label>
                 <Select value={formData.mode || undefined} onValueChange={(value) => handleFieldChange("mode", value || "")}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Seçiniz..." />
+                    <SelectValue placeholder={t("qso.placeholders.mode")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="FM">FM</SelectItem>
@@ -646,7 +649,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Güç (W)</Label>
+                <Label>{t("qso.fields.power")}</Label>
                 <Input
                   type="number"
                   step="0.1"
@@ -654,37 +657,37 @@ const QSOModal: React.FC<QSOModalProps> = ({
                   onChange={(e) =>
                     handleFieldChange("txPower", parseFloat(e.target.value) || 0)
                   }
-                  placeholder="5"
+                  placeholder={t("qso.placeholders.power")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Gönderilen RST</Label>
+                <Label>{t("qso.fields.rstSent")}</Label>
                 <Input
                   type="text"
                   value={formData.rstSent}
                   onChange={(e) => handleFieldChange("rstSent", e.target.value)}
-                  placeholder="59"
+                  placeholder={t("qso.placeholders.rst")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Alınan RST</Label>
+                <Label>{t("qso.fields.rstReceived")}</Label>
                 <Input
                   type="text"
                   value={formData.rstReceived}
                   onChange={(e) => handleFieldChange("rstReceived", e.target.value)}
-                  placeholder="59"
+                  placeholder={t("qso.placeholders.rst")}
                 />
               </div>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label>Notlar</Label>
+            <Label>{t("qso.fields.notes")}</Label>
             <Textarea
               rows={3}
               value={formData.notes}
               onChange={(e) => handleFieldChange("notes", e.target.value)}
-              placeholder="Ek notlar..."
+              placeholder={t("qso.placeholders.notes")}
             />
           </div>
 
@@ -723,18 +726,18 @@ const QSOModal: React.FC<QSOModalProps> = ({
         </DialogBody>
         <DialogFooter>
           <Button variant="secondary" onClick={handleClose} disabled={isSaving}>
-            İptal
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving ? (
               <>
                 <Loader2 className="animate-spin" />
-                Kaydediliyor...
+                {t("common.saving")}
               </>
             ) : (
               <>
                 <Check />
-                Kaydet
+                {t("common.save")}
               </>
             )}
           </Button>

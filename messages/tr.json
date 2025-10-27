@@ -1,0 +1,339 @@
+{
+  "common": {
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
+    "delete": "Sil",
+    "deleting": "Siliniyor...",
+    "clear": "Temizle",
+    "loading": "Yükleniyor...",
+    "skip": "(Atla)",
+    "yes": "Evet",
+    "no": "Hayır",
+    "close": "Kapat",
+    "search": "Ara",
+    "filter": "Filtre",
+    "welcome": "Hoş Geldiniz",
+    "logout": "Çıkış Yap",
+    "viewOnQrz": "QRZ.com'da görüntüle",
+    "locations": "konum",
+    "other": "Diğer",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "page": "Sayfa",
+    "showingRecords": "{total} kayıttan {count} tanesi gösteriliyor",
+    "footer": {
+      "inspiredBy": "'nin QSO Logger'ından ilham alınmıştır",
+      "developedBy": "tarafından geliştirilmektedir",
+      "sign73": "73! İyi QSO'lar!"
+    }
+  },
+  "qso": {
+    "qso": "QSO",
+    "newQso": "Yeni QSO",
+    "editQso": "QSO Düzenle",
+    "qsoRecords": "QSO Kayıtları",
+    "totalQso": "TOPLAM QSO",
+    "todayQso": "BUGÜNKÜ QSO",
+    "filtered": "FİLTRELENMİŞ",
+    "uniqueCallsigns": "BENZERSİZ ÇAĞRI İŞARETLERİ",
+    "fields": {
+      "datetime": "Tarih/Saat",
+      "callsign": "Çağrı İşareti",
+      "name": "İsim",
+      "frequency": "Frekans (MHz)",
+      "frequencyShort": "Frekans",
+      "gridSquare": "Grid Square",
+      "mode": "Mod",
+      "power": "Güç (W)",
+      "powerShort": "Güç",
+      "rstSent": "Gönderilen RST",
+      "rstSentShort": "RST Gön.",
+      "rstReceived": "Alınan RST",
+      "rstReceivedShort": "RST Alı.",
+      "qth": "QTH/Konum",
+      "qthShort": "QTH",
+      "notes": "Notlar",
+      "actions": "İşlemler",
+      "dateOnly": "Tarih *",
+      "timeOnly": "Saat *",
+      "datetimeCombined": "Tarih/Saat (Birleşik)"
+    },
+    "placeholders": {
+      "callsign": "TA1ABC",
+      "name": "Ahmet",
+      "frequency": "14.074",
+      "gridSquare": "KN41",
+      "mode": "SSB",
+      "power": "100",
+      "rst": "59",
+      "qth": "İstanbul",
+      "notes": "İlk QSO"
+    },
+    "tooltips": {
+      "fetchFromQrz": "QRZ'den bilgi getir",
+      "searchLocation": "Konum ara"
+    }
+  },
+  "modals": {
+    "qsoMap": {
+      "title": "QSO Haritası",
+      "noRecords": "Grid square bilgisi olan QSO kaydı bulunmuyor",
+      "mapLoading": "Harita yükleniyor..."
+    },
+    "settings": {
+      "title": "Ayarlar",
+      "stationCallsign": "İstasyon Çağrı İşareti",
+      "gridSquare": "Grid Square (Maidenhead Locator)",
+      "defaultPower": "Varsayılan Güç (W)",
+      "usageMode": "Kullanım Modu",
+      "simpleMode": "Basit Mod",
+      "advancedMode": "Gelişmiş Mod",
+      "timezone": "Saat Dilimi",
+      "language": "Dil",
+      "deleteAllRecords": "Tüm QSO Kayıtlarını Sil",
+      "deleteWarning": "Bu işlem geri alınamaz. Emin misiniz?",
+      "deleteAllButton": "Tüm Kayıtları Sil",
+      "confirmDelete": "Evet, Sil"
+    },
+    "qcodes": {
+      "title": "Q Kodları Referansı",
+      "searchPlaceholder": "Q kodu veya anlamında ara...",
+      "headers": {
+        "code": "Q Kodu",
+        "meaning": "Anlamı"
+      }
+    },
+    "import": {
+      "title": "ADIF İçe Aktar",
+      "csvTitle": "CSV İçe Aktar",
+      "selectFile": "ADIF Dosyası Seçin",
+      "selectCsvFile": "CSV Dosyası Seçin",
+      "supportedFormats": "Desteklenen formatlar: .adi, .adif (ADIF 3.1.4)",
+      "csvSupportedFormat": "Desteklenen format: .csv (UTF-8 kodlamalı)",
+      "targetLogbook": "Hedef Logbook",
+      "selectLogbook": "Logbook seçin",
+      "recordsWillBeImported": "QSO kayıtları bu logbook'a aktarılacak",
+      "selectedFile": "Seçilen dosya:",
+      "allDuplicates": "Tüm kayıtlar tekrarlayan kayıt olarak atlandı",
+      "recordsImported": "{count} kayıt başarıyla içe aktarıldı",
+      "recordsImportedWithErrors": "{count} kayıt başarıyla içe aktarıldı, {errors} kayıt atlandı",
+      "importFailed": "İçe aktarma başarısız oldu",
+      "importError": "İçe aktarma sırasında hata oluştu",
+      "importing": "İçe Aktarılıyor...",
+      "import": "İçe Aktar",
+      "success": "Başarılı!",
+      "error": "Hata!",
+      "imported": "İçe aktarılan:",
+      "records": "kayıt",
+      "failed": "Hatalı:",
+      "failedOrSkipped": "Hatalı/Atlanan:",
+      "errorMessages": "Hata mesajları:",
+      "messages": "Mesajlar:",
+      "invalidCsvFile": "Lütfen geçerli bir CSV dosyası seçin (.csv)",
+      "csvMinRows": "CSV dosyası en az başlık ve bir veri satırı içermelidir",
+      "csvParseError": "CSV ayrıştırma hatası: {error}",
+      "invalidMapping": "Geçersiz sütun eşleştirmesi",
+      "columnMapping": "Sütun Eşleştirme",
+      "result": "Sonuç",
+      "columnsFound": "{columns} sütun, {rows} satır bulundu",
+      "mappingInfo": "Her CSV sütununu QSO alanlarıyla eşleştirin. (*) ile işaretli alanlar zorunludur.",
+      "preview": "Önizleme (İlk 3 Satır)",
+      "back": "Geri",
+      "importCount": "İçe Aktar ({count} kayıt)"
+    },
+    "createLogbook": {
+      "title": "Yeni Logbook Oluştur",
+      "nameLabel": "Logbook Adı",
+      "placeholder": "Örn: Contest 2025, POTA Aktivasyonları",
+      "helperText": "Logbook'larınızı düzenlemek için anlamlı isimler kullanın",
+      "create": "Oluştur",
+      "creating": "Oluşturuluyor..."
+    },
+    "stats": {
+      "title": "İstatistikler",
+      "chartLabel": "QSO Sayısı",
+      "frequencyStats": "Frekans İstatistikleri",
+      "totalUsers": "Toplam Kullanıcı",
+      "totalQSO": "Toplam QSO",
+      "topFrequencies": "En Aktif 10 Frekans"
+    },
+    "deleteConfirm": {
+      "title": "QSO Kaydını Sil",
+      "message": "Bu QSO kaydını silmek istediğinizden emin misiniz?",
+      "callsignLabel": "Çağrı İşareti:",
+      "dateLabel": "Tarih:",
+      "warning": "Bu işlem geri alınamaz."
+    }
+  },
+  "validation": {
+    "required": {
+      "callsign": "Çağrı işareti zorunludur",
+      "datetime": "Tarih/Saat zorunludur",
+      "dateAndTime": "Tarih ve saat gereklidir",
+      "logbookName": "Logbook adı gereklidir",
+      "file": "Lütfen bir dosya seçin",
+      "logbook": "Lütfen bir logbook seçin"
+    },
+    "invalid": {
+      "callsign": "Geçersiz çağrı işareti",
+      "gridSquare": "Geçersiz grid square formatı (örn: JO01aa)",
+      "adifFile": "Lütfen geçerli bir ADIF dosyası seçin (.adi veya .adif)"
+    },
+    "error": {
+      "gridSquareUpdateFailed": "Grid square güncellenemedi",
+      "callsignNotFound": "Çağrı işareti bulunamadı",
+      "qrzQueryFailed": "QRZ sorgulaması başarısız",
+      "sessionExpired": "Oturum süreniz dolmuş",
+      "tooManyRequests": "Çok fazla istek",
+      "serverError": "Sunucu hatası",
+      "qrzServiceUnavailable": "QRZ API servisi kullanılamıyor",
+      "qrzNotConfigured": "QRZ API yapılandırılmamış",
+      "enterCallsignFirst": "Lütfen önce çağrı işareti girin",
+      "logbookExists": "Bu isimde bir logbook zaten mevcut",
+      "logbookNameTooLong": "Logbook adı çok uzun (maksimum 100 karakter)",
+      "logbookCreateFailed": "Logbook oluşturulurken hata oluştu",
+      "settingsSaveFailed": "Ayarlar kaydedilirken hata oluştu"
+    },
+    "success": {
+      "gridSquareUpdated": "Grid square güncellendi",
+      "qrzDataLoaded": "QRZ verisi yüklendi",
+      "settingsSaved": "Ayarlar kaydedildi",
+      "logbookCreated": "\"{name}\" logbook'u oluşturuldu"
+    }
+  },
+  "navigation": {
+    "appName": "TA QSO Logger",
+    "appDescription": "Amatör Telsiz",
+    "sections": {
+      "logbook": "Logbook",
+      "menu": "Menü",
+      "help": "Yardım"
+    },
+    "menu": {
+      "selectLogbook": "Logbook seçin",
+      "newLogbook": "Yeni Logbook",
+      "export": "Dışa Aktar",
+      "importAdif": "İçe Aktar (ADIF)",
+      "importCsv": "İçe Aktar (CSV)",
+      "qsoMap": "QSO Haritası",
+      "settings": "Ayarlar",
+      "statistics": "İstatistikler",
+      "qcodes": "Q Kodları"
+    },
+    "toast": {
+      "noRecordsToExport": "Dışa aktarılacak kayıt bulunmuyor",
+      "exportSuccess": "QSO kayıtları ADIF olarak dışa aktarıldı"
+    }
+  },
+  "filters": {
+    "title": "Filtreler",
+    "year": "Yıl",
+    "month": "Ay",
+    "generalSearch": "Genel Arama",
+    "allYears": "Tüm Yıllar",
+    "allMonths": "Tüm Aylar",
+    "searchPlaceholder": "Tüm alanlarda ara...",
+    "filterLabel": "Filtre:",
+    "searchLabel": "Arama:",
+    "months": {
+      "january": "Ocak",
+      "february": "Şubat",
+      "march": "Mart",
+      "april": "Nisan",
+      "may": "Mayıs",
+      "june": "Haziran",
+      "july": "Temmuz",
+      "august": "Ağustos",
+      "september": "Eylül",
+      "october": "Ekim",
+      "november": "Kasım",
+      "december": "Aralık"
+    },
+    "aria": {
+      "clearYear": "Yıl filtresini temizle",
+      "clearMonth": "Ay filtresini temizle",
+      "clearSearch": "Aramayı temizle"
+    }
+  },
+  "auth": {
+    "title": "TA QSO Logger",
+    "description": "Amatör radyo operatörleri için modern web tabanlı QSO kayıt sistemi. Bağlantılarınızı yönetin, ADIF desteği ile içe/dışa aktarın ve dünya haritasında görüntüleyin.",
+    "loginButton": "Google ile Giriş Yap",
+    "stats": {
+      "users": "Kullanıcı",
+      "qsos": "QSO Kaydı"
+    },
+    "features": {
+      "title": "Özellikler",
+      "qsoManagement": {
+        "title": "QSO Yönetimi",
+        "description": "Amatör radyo bağlantı kayıtlarınızı oluşturun, düzenleyin ve silin."
+      },
+      "importExport": {
+        "title": "İçe/Dışa Aktarma",
+        "description": "ADIF (.adi) ve CSV formatlarında bağlantılarınızı içe ve dışa aktarın."
+      },
+      "interactiveMaps": {
+        "title": "İnteraktif Haritalar",
+        "description": "Tüm bağlantılarınızı Leaflet ile dünya haritasında görüntüleyin."
+      },
+      "simpleModes": {
+        "title": "Basit & Gelişmiş Mod",
+        "description": "Yeni başlayanlar için basit, deneyimli operatörler için gelişmiş mod."
+      }
+    },
+    "footer": "73! İyi QSO'lar!",
+    "credits": "TA1TLA'nin QSO Logger'ından ilham alınarak TA1VAL tarafından geliştirilmiştir."
+  },
+  "qcodes": {
+    "QRA": "İstasyonunuzun adı nedir?",
+    "QRB": "İstasyonumdan ne kadar uzaktasınız?",
+    "QRG": "Tam frekansımı bildirirmisiniz?",
+    "QRH": "Frekansım değişiyor mu?",
+    "QRI": "Tınım nasıl?",
+    "QRK": "Sinyallerimin anlaşılabilirliği nedir?",
+    "QRL": "Meşgul müsünüz?",
+    "QRM": "Başka istasyonlardan parazit var mı?",
+    "QRN": "Atmosferik parazit var mı?",
+    "QRO": "Gücümü arttırayım mı?",
+    "QRP": "Gücümü azaltayım mı?",
+    "QRQ": "Daha hızlı göndereyim mi?",
+    "QRS": "Daha yavaş göndereyim mi?",
+    "QRT": "Yayını durdurayım mı?",
+    "QRU": "Bana verecek bir şeyiniz var mı?",
+    "QRV": "Hazır mısınız?",
+    "QRW": "...istasyonuna söyleyeyim mi?",
+    "QRX": "Ne zaman tekrar çağıracaksınız?",
+    "QRZ": "Kim beni çağırıyor?",
+    "QSA": "Sinyallerimin gücü nedir?",
+    "QSB": "Sinyallerim zayıflayıp güçleniyor mu?",
+    "QSD": "Manipülasyonum kusurlu mu?",
+    "QSG": "...telgraf göndereyim mi?",
+    "QSK": "Beni duyabiliyor musunuz?",
+    "QSL": "Alındı onayı verir misiniz?",
+    "QSM": "Son mesajımı tekrar edeyim mi?",
+    "QSN": "Beni ...frekansında duydunuz mu?",
+    "QSO": "...ile doğrudan haberleşebilir misiniz?",
+    "QSP": "...için nakledebilir misiniz?",
+    "QSU": "Bu frekansta cevap verebilir misiniz?",
+    "QSV": "Bu frekansta V (nokta nokta nokta tire) göndereyim mi?",
+    "QSW": "Bu frekansta yayın yapacak mısınız?",
+    "QSX": "...frekansında dinliyor musunuz?",
+    "QSY": "Başka frekansa geçeyim mi?",
+    "QSZ": "Her grubu iki kez göndereyim mi?",
+    "QTA": "...numaralı telgrafı iptal edeyim mi?",
+    "QTB": "Kelime sayımı doğru buluyor musunuz?",
+    "QTC": "Kaç telgrafınız var?",
+    "QTH": "Bulunduğunuz yer neresidir?",
+    "QTI": "Rotanız nedir?",
+    "QTR": "Tam zamanınız nedir?",
+    "QTS": "Çağrı işaretimi gönderecek misiniz?",
+    "QTU": "İstasyonunuz ne saatler arasında çalışıyor?",
+    "QTX": "İstasyonunuzu açık tutacak mısınız?",
+    "QUA": "...hakkında haberiniz var mı?",
+    "QUC": "Son aldığım mesajın numarası kaçtı?",
+    "QUD": "Acil sinyal aldınız mı?",
+    "QUE": "...hangi dilde konuşabiliyor?"
+  }
+}

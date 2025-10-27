@@ -1,7 +1,12 @@
+"use client";
+
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Radio, Code, Github, Heart } from "lucide-react";
 
 const Footer: React.FC = () => {
+  const t = useTranslations();
+
   return (
     <footer className="bg-card py-4 mt-5 border-t">
       <div className="px-4 lg:px-6">
@@ -17,10 +22,11 @@ const Footer: React.FC = () => {
               >
                 TA1TLA
               </a>
-              &apos;nin QSO Logger&apos;ından ilham alınmıştır
+              {t("common.footer.inspiredBy")}
             </p>
             <p className="text-sm mb-0 text-muted-foreground">
               <Code className="inline w-4 h-4 mr-2" />
+              {t("common.footer.developedBy")}{" "}
               <a
                 href="https://www.qrz.com/db/TA1VAL"
                 target="_blank"
@@ -28,8 +34,7 @@ const Footer: React.FC = () => {
                 className="text-muted-foreground no-underline hover:text-foreground transition-colors"
               >
                 TA1VAL
-              </a>{" "}
-              tarafından geliştirilmektedir
+              </a>
             </p>
           </div>
           <div className="text-center md:text-right">
@@ -53,7 +58,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 mt-3">
           <div className="text-center">
             <p className="text-sm mb-0 text-muted-foreground" style={{ fontSize: '0.85rem' }}>
-              73! İyi QSO&apos;lar!
+              {t("common.footer.sign73")}
             </p>
           </div>
         </div>

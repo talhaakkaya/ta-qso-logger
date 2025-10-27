@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +12,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BarChart3, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { formatNumber } from "@/utils/stringUtils";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -49,6 +51,7 @@ interface StatsData {
 }
 
 const StatsModal: React.FC<StatsModalProps> = ({ show, onHide }) => {
+  const t = useTranslations();
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
@@ -75,7 +78,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ show, onHide }) => {
     labels: stats?.topFrequencies.map((item) => `${item.freq} MHz`) || [],
     datasets: [
       {
-        label: "QSO Sayısı",
+        label: t("modals.stats.chartLabel"),
         data: stats?.topFrequencies.map((item) => item.count) || [],
         backgroundColor: "rgba(59, 130, 246, 0.8)",
         borderColor: "rgba(59, 130, 246, 1)",
@@ -129,7 +132,7 @@ const StatsModal: React.FC<StatsModalProps> = ({ show, onHide }) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BarChart3 />
-            Frekans İstatistikleri
+            {t("modals.stats.frequencyStats")}
           </DialogTitle>
         </DialogHeader>
         <DialogBody>
@@ -143,25 +146,25 @@ const StatsModal: React.FC<StatsModalProps> = ({ show, onHide }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Toplam Kullanıcı</span>
+                  <span>{t("modals.stats.totalUsers")}</span>
                 </div>
                 <div className="text-xl sm:text-2xl font-bold">
-                  {stats?.totalUsers.toLocaleString("tr-TR")}
+                  {formatNumber(stats?.totalUsers || 0)}
                 </div>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Toplam QSO</span>
+                  <span>{t("modals.stats.totalQSO")}</span>
                 </div>
                 <div className="text-xl sm:text-2xl font-bold">
-                  {stats?.totalQSOs.toLocaleString("tr-TR")}
+                  {formatNumber(stats?.totalQSOs || 0)}
                 </div>
               </div>
             </div>
 
             {/* Chart */}
             <div className="space-y-2">
-              <h3 className="font-semibold text-sm">En Aktif 10 Frekans</h3>
+              <h3 className="font-semibold text-sm">{t("modals.stats.topFrequencies")}</h3>
               <div className="h-[300px] sm:h-[400px] md:h-[500px]">
                 <Bar data={chartData} options={chartOptions} />
               </div>

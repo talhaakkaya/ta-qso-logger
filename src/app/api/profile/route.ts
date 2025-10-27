@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateProfile } from "@/lib/user-helpers";
+import { toCallsignCase } from "@/utils/stringUtils";
 
 // GET /api/profile - Get user's profile
 export async function GET() {
@@ -52,13 +53,15 @@ export async function PUT(request: NextRequest) {
     // Prepare update data
     const updateData: any = {};
     if (data.callsign !== undefined) {
-      updateData.callsign = data.callsign.trim().toUpperCase() || null;
+      const trimmed = data.callsign.trim();
+      updateData.callsign = trimmed ? toCallsignCase(trimmed) : null;
     }
     if (data.name !== undefined) {
       updateData.name = data.name.trim() || null;
     }
     if (data.gridSquare !== undefined) {
-      updateData.gridSquare = data.gridSquare.trim().toUpperCase() || null;
+      const trimmed = data.gridSquare.trim();
+      updateData.gridSquare = trimmed ? toCallsignCase(trimmed) : null;
     }
 
     // Update profile
