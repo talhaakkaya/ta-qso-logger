@@ -5,6 +5,7 @@
     "saving": "Saving...",
     "delete": "Delete",
     "deleting": "Deleting...",
+    "edit": "Edit",
     "clear": "Clear",
     "loading": "Loading...",
     "skip": "(Skip)",
@@ -22,6 +23,8 @@
     "next": "Next",
     "page": "Page",
     "showingRecords": "Showing {count} of {total}",
+    "qsoDeleted": "QSO record deleted",
+    "qsoDeleteFailed": "Failed to delete QSO record",
     "footer": {
       "inspiredBy": "'s QSO Logger inspired this project",
       "developedBy": "Developed by",
@@ -73,7 +76,9 @@
     "tooltips": {
       "fetchFromQrz": "Fetch from QRZ",
       "searchLocation": "Search location"
-    }
+    },
+    "locationMap": "Location Map",
+    "rfLineOfSight": "RF Line of Sight Analysis"
   },
   "modals": {
     "qsoMap": {

@@ -695,7 +695,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
           {userMode === 'advanced' && mapCoordinates && show && (
             <div key={mapKey} className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label>Konum Haritası ({formData.qth})</Label>
+                <Label>{t("qso.locationMap")} ({formData.qth})</Label>
                 {(() => {
                   const rflosUrl = generateRFLOSUrl();
                   return rflosUrl ? (
@@ -706,7 +706,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
                       className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
                     >
                       <ExternalLink className="w-4 h-4" />
-                      RF Line of Sight Analizi
+                      {t("qso.rfLineOfSight")}
                     </a>
                   ) : null;
                 })()}

@@ -5,6 +5,7 @@
     "saving": "Kaydediliyor...",
     "delete": "Sil",
     "deleting": "Siliniyor...",
+    "edit": "Düzenle",
     "clear": "Temizle",
     "loading": "Yükleniyor...",
     "skip": "(Atla)",
@@ -22,6 +23,8 @@
     "next": "Sonraki",
     "page": "Sayfa",
     "showingRecords": "{total} kayıttan {count} tanesi gösteriliyor",
+    "qsoDeleted": "QSO kaydı silindi",
+    "qsoDeleteFailed": "QSO kaydı silinirken hata oluştu",
     "footer": {
       "inspiredBy": "'nin QSO Logger'ından ilham alınmıştır",
       "developedBy": "tarafından geliştirilmektedir",
@@ -73,7 +76,9 @@
     "tooltips": {
       "fetchFromQrz": "QRZ'den bilgi getir",
       "searchLocation": "Konum ara"
-    }
+    },
+    "locationMap": "Konum Haritası",
+    "rfLineOfSight": "RF Line of Sight Analizi"
   },
   "modals": {
     "qsoMap": {

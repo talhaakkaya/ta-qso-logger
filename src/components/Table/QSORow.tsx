@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell } from "@/components/ui/table";
 import {
@@ -28,6 +29,7 @@ const QSORow: React.FC<QSORowProps> = ({
   onEdit,
   userMode,
 }) => {
+  const t = useTranslations();
   const { deleteQSORecord } = useQSO();
   const { showToast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -43,11 +45,11 @@ const QSORow: React.FC<QSORowProps> = ({
     setIsDeleting(true);
     try {
       await deleteQSORecord(record.id);
-      showToast("QSO kaydı silindi", "success");
+      showToast(t("common.qsoDeleted"), "success");
       setShowDeleteDialog(false);
     } catch (error) {
       console.error("Delete failed:", error);
-      showToast("QSO kaydı silinirken hata oluştu", "error");
+      showToast(t("common.qsoDeleteFailed"), "error");
     } finally {
       setIsDeleting(false);
     }
@@ -98,7 +100,7 @@ const QSORow: React.FC<QSORowProps> = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="no-underline"
-                title="QRZ.com'da görüntüle"
+                title={t("common.viewOnQrz")}
                 onClick={(e) => e.stopPropagation()}
               >
                 <ExternalLink className="w-3 h-3" />
@@ -137,24 +139,24 @@ const QSORow: React.FC<QSORowProps> = ({
           <TableCell colSpan={4} className="bg-muted/30 p-0">
             <div className="p-4 text-sm">
               <div className="grid grid-cols-12 gap-2 mb-2">
-                <div className="col-span-4 text-muted-foreground text-xs">İsim:</div>
+                <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.name")}:</div>
                 <div className="col-span-8">{record.name || "-"}</div>
               </div>
               <div className="grid grid-cols-12 gap-2 mb-2">
-                <div className="col-span-4 text-muted-foreground text-xs">Frekans:</div>
+                <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.frequencyShort")}:</div>
                 <div className="col-span-8">
                   {record.freq ? `${parseFloat(record.freq.toString()).toFixed(3)} MHz` : "-"}
                 </div>
               </div>
               {userMode === 'advanced' && (
                 <div className="grid grid-cols-12 gap-2 mb-2">
-                  <div className="col-span-4 text-muted-foreground text-xs">Mod:</div>
+                  <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.mode")}:</div>
                   <div className="col-span-8">{record.mode || "-"}</div>
                 </div>
               )}
               {userMode === 'advanced' && (
                 <div className="grid grid-cols-12 gap-2 mb-2">
-                  <div className="col-span-4 text-muted-foreground text-xs">Güç:</div>
+                  <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.powerShort")}:</div>
                   <div className="col-span-8">
                     {record.txPower ? `${record.txPower} W` : "-"}
                   </div>
@@ -162,22 +164,22 @@ const QSORow: React.FC<QSORowProps> = ({
               )}
               {userMode === 'advanced' && (
                 <div className="grid grid-cols-12 gap-2 mb-2">
-                  <div className="col-span-4 text-muted-foreground text-xs">RST Gön.:</div>
+                  <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.rstSentShort")}:</div>
                   <div className="col-span-8">{record.rstSent || "-"}</div>
                 </div>
               )}
               {userMode === 'advanced' && (
                 <div className="grid grid-cols-12 gap-2 mb-2">
-                  <div className="col-span-4 text-muted-foreground text-xs">RST Alı.:</div>
+                  <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.rstReceivedShort")}:</div>
                   <div className="col-span-8">{record.rstReceived || "-"}</div>
                 </div>
               )}
               <div className="grid grid-cols-12 gap-2 mb-2">
-                <div className="col-span-4 text-muted-foreground text-xs">{userMode === 'simple' ? 'QTH:' : 'Grid Square:'}</div>
+                <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.qthShort")}:</div>
                 <div className="col-span-8">{record.qth || "-"}</div>
               </div>
               <div className="grid grid-cols-12 gap-2 mb-3">
-                <div className="col-span-4 text-muted-foreground text-xs">Notlar:</div>
+                <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.notes")}:</div>
                 <div className="col-span-8">{record.notes || "-"}</div>
               </div>
 
@@ -192,11 +194,11 @@ const QSORow: React.FC<QSORowProps> = ({
                   }}
                 >
                   <Pencil className="w-3 h-3 mr-1" />
-                  Düzenle
+                  {t("common.edit")}
                 </Button>
                 <Button variant="destructive" size="sm" onClick={handleDeleteClick}>
                   <Trash2 className="w-3 h-3 mr-1" />
-                  Sil
+                  {t("common.delete")}
                 </Button>
               </div>
             </div>
@@ -210,25 +212,25 @@ const QSORow: React.FC<QSORowProps> = ({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="text-destructive" />
-              QSO Kaydını Sil
+              {t("modals.deleteConfirm.title")}
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground mb-3">
-              Bu QSO kaydını silmek istediğinizden emin misiniz?
+              {t("modals.deleteConfirm.message")}
             </p>
             <div className="rounded-md bg-muted p-3 space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Çağrı İşareti:</span>
+                <span className="text-xs text-muted-foreground">{t("modals.deleteConfirm.callsignLabel")}</span>
                 <strong className="text-sm">{record.callsign}</strong>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Tarih:</span>
+                <span className="text-xs text-muted-foreground">{t("modals.deleteConfirm.dateLabel")}</span>
                 <span className="text-sm">{formatDateTimeForDisplay(record.datetime)}</span>
               </div>
             </div>
             <p className="text-xs text-destructive mt-3">
-              Bu işlem geri alınamaz.
+              {t("modals.deleteConfirm.warning")}
             </p>
           </div>
           <DialogFooter>
@@ -237,7 +239,7 @@ const QSORow: React.FC<QSORowProps> = ({
               onClick={() => setShowDeleteDialog(false)}
               disabled={isDeleting}
             >
-              İptal
+              {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -247,12 +249,12 @@ const QSORow: React.FC<QSORowProps> = ({
               {isDeleting ? (
                 <>
                   <Loader2 className="animate-spin" />
-                  Siliniyor...
+                  {t("common.deleting")}
                 </>
               ) : (
                 <>
                   <Trash2 />
-                  Sil
+                  {t("common.delete")}
                 </>
               )}
             </Button>
