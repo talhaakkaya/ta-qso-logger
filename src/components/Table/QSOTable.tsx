@@ -183,11 +183,11 @@ const QSOTable: React.FC = () => {
                           <TableCell colSpan={row.getVisibleCells().length} className="bg-muted/30 p-0">
                             <div className="p-4 text-sm">
                               <div className="grid grid-cols-12 gap-2 mb-2">
-                                <div className="col-span-4 text-muted-foreground text-xs">İsim:</div>
+                                <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.name")}:</div>
                                 <div className="col-span-8">{row.original.name || "-"}</div>
                               </div>
                               <div className="grid grid-cols-12 gap-2 mb-2">
-                                <div className="col-span-4 text-muted-foreground text-xs">Frekans:</div>
+                                <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.frequencyShort")}:</div>
                                 <div className="col-span-8">
                                   {row.original.freq ? `${parseFloat(row.original.freq.toString()).toFixed(3)} MHz` : "-"}
                                 </div>
@@ -195,31 +195,31 @@ const QSOTable: React.FC = () => {
                               {userMode === 'advanced' && (
                                 <>
                                   <div className="grid grid-cols-12 gap-2 mb-2">
-                                    <div className="col-span-4 text-muted-foreground text-xs">Mod:</div>
+                                    <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.mode")}:</div>
                                     <div className="col-span-8">{row.original.mode || "-"}</div>
                                   </div>
                                   <div className="grid grid-cols-12 gap-2 mb-2">
-                                    <div className="col-span-4 text-muted-foreground text-xs">Güç:</div>
+                                    <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.powerShort")}:</div>
                                     <div className="col-span-8">
                                       {row.original.txPower ? `${row.original.txPower} W` : "-"}
                                     </div>
                                   </div>
                                   <div className="grid grid-cols-12 gap-2 mb-2">
-                                    <div className="col-span-4 text-muted-foreground text-xs">RST Gön.:</div>
+                                    <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.rstSentShort")}:</div>
                                     <div className="col-span-8">{row.original.rstSent || "-"}</div>
                                   </div>
                                   <div className="grid grid-cols-12 gap-2 mb-2">
-                                    <div className="col-span-4 text-muted-foreground text-xs">RST Alı.:</div>
+                                    <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.rstReceivedShort")}:</div>
                                     <div className="col-span-8">{row.original.rstReceived || "-"}</div>
                                   </div>
                                 </>
                               )}
                               <div className="grid grid-cols-12 gap-2 mb-2">
-                                <div className="col-span-4 text-muted-foreground text-xs">{userMode === 'simple' ? 'QTH:' : 'Grid Square:'}</div>
+                                <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.qthShort")}:</div>
                                 <div className="col-span-8">{row.original.qth || "-"}</div>
                               </div>
                               <div className="grid grid-cols-12 gap-2 mb-3">
-                                <div className="col-span-4 text-muted-foreground text-xs">Notlar:</div>
+                                <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.notes")}:</div>
                                 <div className="col-span-8">{row.original.notes || "-"}</div>
                               </div>
 
@@ -234,7 +234,7 @@ const QSOTable: React.FC = () => {
                                   }}
                                 >
                                   <Pencil />
-                                  Düzenle
+                                  {t("common.edit")}
                                 </Button>
                                 <Button
                                   variant="destructive"
@@ -245,7 +245,7 @@ const QSOTable: React.FC = () => {
                                   }}
                                 >
                                   <Trash2 />
-                                  Sil
+                                  {t("common.delete")}
                                 </Button>
                               </div>
                             </div>
