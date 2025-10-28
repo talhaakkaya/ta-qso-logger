@@ -342,13 +342,19 @@ const QSOModal: React.FC<QSOModalProps> = ({
       const base64Encoded = btoa(jsonString);
 
       // Generate the URL
-      const url = `https://rflos.qso.app/?p=${base64Encoded}&from=1&to=2&sel=1%2C2&hl=0&pv=0&los=1`;
+      let url = `https://rflos.qso.app/?p=${base64Encoded}&from=1&to=2&sel=1%2C2&hl=0&pv=0&los=1`;
+
+      // Add frequency parameter if available
+      if (formData.freq) {
+        url += `&freq=${formData.freq}`;
+      }
+
       return url;
     } catch (error) {
       console.error("Failed to generate RF LOS URL:", error);
       return null;
     }
-  }, [stationGridSquare, stationCallsign, formData.qth, formData.callsign]);
+  }, [stationGridSquare, stationCallsign, formData.qth, formData.callsign, formData.freq]);
 
   // Handle QRZ API lookup
   const handleQRZLookup = async () => {
