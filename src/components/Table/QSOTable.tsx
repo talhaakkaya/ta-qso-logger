@@ -273,8 +273,7 @@ const QSOTable: React.FC = () => {
                               )}
                               <div className="grid grid-cols-12 gap-2 mb-2">
                                 <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.qthShort")}:</div>
-                                <div className="col-span-8 flex items-center gap-2">
-                                  <span>{row.original.qth || "-"}</span>
+                                <div className="col-span-8">
                                   {userMode === 'advanced' && (() => {
                                     const rflosUrl = generateRFLOSUrl(row.original);
                                     return rflosUrl ? (
@@ -282,13 +281,14 @@ const QSOTable: React.FC = () => {
                                         href={rflosUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center text-primary hover:text-primary/80"
+                                        className="inline-flex items-center gap-1 text-primary hover:underline"
                                         onClick={(e) => e.stopPropagation()}
                                       >
-                                        <ExternalLink className="w-4 h-4" />
+                                        {row.original.qth}
+                                        <ExternalLink className="w-3 h-3" />
                                       </a>
-                                    ) : null;
-                                  })()}
+                                    ) : (row.original.qth || "-");
+                                  })() || (row.original.qth || "-")}
                                 </div>
                               </div>
                               <div className="grid grid-cols-12 gap-2 mb-3">
