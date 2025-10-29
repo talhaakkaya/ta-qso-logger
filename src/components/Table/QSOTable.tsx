@@ -273,31 +273,28 @@ const QSOTable: React.FC = () => {
                               )}
                               <div className="grid grid-cols-12 gap-2 mb-2">
                                 <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.qthShort")}:</div>
-                                <div className="col-span-8">{row.original.qth || "-"}</div>
+                                <div className="col-span-8 flex items-center gap-2">
+                                  <span>{row.original.qth || "-"}</span>
+                                  {userMode === 'advanced' && (() => {
+                                    const rflosUrl = generateRFLOSUrl(row.original);
+                                    return rflosUrl ? (
+                                      <a
+                                        href={rflosUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center text-primary hover:text-primary/80"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <ExternalLink className="w-4 h-4" />
+                                      </a>
+                                    ) : null;
+                                  })()}
+                                </div>
                               </div>
                               <div className="grid grid-cols-12 gap-2 mb-3">
                                 <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.notes")}:</div>
                                 <div className="col-span-8">{row.original.notes || "-"}</div>
                               </div>
-
-                              {/* RF Line of Sight Link - Advanced Mode Only */}
-                              {userMode === 'advanced' && (() => {
-                                const rflosUrl = generateRFLOSUrl(row.original);
-                                return rflosUrl ? (
-                                  <div className="mb-3">
-                                    <a
-                                      href={rflosUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <ExternalLink className="w-4 h-4" />
-                                      {t("qso.rfLineOfSight")}
-                                    </a>
-                                  </div>
-                                ) : null;
-                              })()}
 
                               {/* Actions in expanded view */}
                               <div className="flex justify-end gap-2 border-t pt-3">
