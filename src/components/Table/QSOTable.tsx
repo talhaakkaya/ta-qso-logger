@@ -12,7 +12,7 @@ import { useQSOActions } from "@/hooks/useQSOActions";
 import QSOModal from "@/components/Modals/QSOModal";
 import DeleteConfirmDialog from "@/components/shared/DeleteConfirmDialog";
 import { QSORecord } from "@/types";
-import { Table as TableIcon, PlusCircle, Inbox, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Table as TableIcon, PlusCircle, Inbox, Loader2, Pencil, Trash2, ExternalLink } from "lucide-react";
 import {
   ColumnDef,
   flexRender,
@@ -25,10 +25,11 @@ import {
   getExpandedRowModel,
 } from "@tanstack/react-table";
 import { getColumns } from "./columns";
+import { gridSquareToCoordinates } from "@/utils/gridSquareUtils";
 
 const QSOTable: React.FC = () => {
   const t = useTranslations();
-  const { filteredRecords, isLoading, currentLogbook } = useQSO();
+  const { filteredRecords, isLoading, currentLogbook, stationCallsign, stationGridSquare } = useQSO();
   const userMode = useUserMode();
   const qsoModal = useModal<QSORecord>();
   const deleteModal = useModal<QSORecord>();
@@ -65,6 +66,62 @@ const QSOTable: React.FC = () => {
       // Error already handled by useQSOActions
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // Generate RF Line of Sight URL for a QSO record
+  const generateRFLOSUrl = (record: QSORecord): string | null => {
+    const contactGridSquare = record.qth;
+
+    // Need both grid squares
+    if (!stationGridSquare || !contactGridSquare || contactGridSquare.length < 4) {
+      return null;
+    }
+
+    try {
+      // Convert grid squares to coordinates
+      const stationCoords = gridSquareToCoordinates(stationGridSquare);
+      const contactCoords = gridSquareToCoordinates(contactGridSquare);
+
+      // Check if conversion was successful
+      if (!stationCoords || !contactCoords) {
+        return null;
+      }
+
+      // Create the data structure for RF LOS
+      const points = [
+        {
+          id: "1",
+          lat: stationCoords.lat,
+          lon: stationCoords.lon,
+          name: stationCallsign || "My Station",
+          height: 10
+        },
+        {
+          id: "2",
+          lat: contactCoords.lat,
+          lon: contactCoords.lon,
+          name: record.callsign || "Contact",
+          height: 10
+        }
+      ];
+
+      // Base64 encode the JSON
+      const jsonString = JSON.stringify(points);
+      const base64Encoded = btoa(jsonString);
+
+      // Generate the URL
+      let url = `https://rflos.qso.app/?p=${base64Encoded}&from=1&to=2&sel=1%2C2&hl=0&pv=0&los=1`;
+
+      // Add frequency parameter if available
+      if (record.freq) {
+        url += `&freq=${record.freq}`;
+      }
+
+      return url;
+    } catch (error) {
+      console.error("Failed to generate RF LOS URL:", error);
+      return null;
     }
   };
 
@@ -222,6 +279,25 @@ const QSOTable: React.FC = () => {
                                 <div className="col-span-4 text-muted-foreground text-xs">{t("qso.fields.notes")}:</div>
                                 <div className="col-span-8">{row.original.notes || "-"}</div>
                               </div>
+
+                              {/* RF Line of Sight Link - Advanced Mode Only */}
+                              {userMode === 'advanced' && (() => {
+                                const rflosUrl = generateRFLOSUrl(row.original);
+                                return rflosUrl ? (
+                                  <div className="mb-3">
+                                    <a
+                                      href={rflosUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <ExternalLink className="w-4 h-4" />
+                                      {t("qso.rfLineOfSight")}
+                                    </a>
+                                  </div>
+                                ) : null;
+                              })()}
 
                               {/* Actions in expanded view */}
                               <div className="flex justify-end gap-2 border-t pt-3">
