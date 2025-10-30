@@ -39,7 +39,8 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
   const [importResult, setImportResult] = useState<{
     success: boolean;
     imported: number;
-    errors: number;
+    skipped?: number;
+    failed?: number;
     errorMessages?: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -81,43 +82,17 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
       setImportResult(result);
 
       if (result.success) {
-        // Handle different scenarios
-        if (result.imported === 0) {
-          // No records imported (all duplicates or errors)
-          if (result.errorMessages && result.errorMessages.length > 0) {
-            showToast(result.errorMessages.join(", "), "warning");
-          } else {
-            showToast(t("modals.import.allDuplicates"), "warning");
-          }
-        } else {
-          // Some records imported
-          let message = t("modals.import.recordsImported", { count: result.imported });
-          if (result.errorMessages && result.errorMessages.length > 0) {
-            message += `. ${result.errorMessages.join(", ")}`;
-          }
-          showToast(message, "success");
-
-          // Switch to the imported logbook if it's different from current
-          if (selectedLogbookId && selectedLogbookId !== currentLogbook?.id) {
-            await setCurrentLogbook(selectedLogbookId);
-          }
+        // Switch to the imported logbook if it's different from current
+        if (result.imported > 0 && selectedLogbookId && selectedLogbookId !== currentLogbook?.id) {
+          await setCurrentLogbook(selectedLogbookId);
         }
-
-        // Close modal after successful import
-        setTimeout(() => {
-          handleClose();
-        }, 2000);
-      } else {
-        showToast(t("modals.import.importFailed"), "error");
       }
     } catch (error) {
       console.error("Import error:", error);
-      showToast(t("modals.import.importError"), "error");
       setImportResult({
         success: false,
         imported: 0,
-        errors: 1,
-        errorMessages: [(error as Error).message],
+        failed: 1,
       });
     } finally {
       setIsImporting(false);
@@ -212,20 +187,16 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onHide }) => {
                     <CheckCircle className="w-4 h-4" />
                     {t("modals.import.imported")} <strong>{importResult.imported}</strong> {t("modals.import.records")}
                   </div>
-                  {importResult.errors > 0 && (
+                  {importResult.skipped !== undefined && importResult.skipped > 0 && (
                     <div className="flex items-center gap-2">
-                      <XCircle className="w-4 h-4" />
-                      {t("modals.import.failed")} <strong>{importResult.errors}</strong> {t("modals.import.records")}
+                      <Info className="w-4 h-4" />
+                      {t("modals.import.skipped")} <strong>{importResult.skipped}</strong> {t("modals.import.duplicates")}
                     </div>
                   )}
-                  {importResult.errorMessages && importResult.errorMessages.length > 0 && (
-                    <div className="mt-2">
-                      <div className="text-sm font-semibold mb-1">{t("modals.import.errorMessages")}</div>
-                      <ul className="list-disc list-inside text-sm space-y-1">
-                        {importResult.errorMessages.map((msg, idx) => (
-                          <li key={idx}>{msg}</li>
-                        ))}
-                      </ul>
+                  {importResult.failed !== undefined && importResult.failed > 0 && (
+                    <div className="flex items-center gap-2">
+                      <XCircle className="w-4 h-4" />
+                      {t("modals.import.failed")} <strong>{importResult.failed}</strong> {t("modals.import.records")}
                     </div>
                   )}
                 </div>

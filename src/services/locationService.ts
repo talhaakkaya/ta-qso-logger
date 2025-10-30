@@ -13,17 +13,28 @@ export interface NominatimResult {
 }
 
 /**
+ * Custom error class for location service errors
+ */
+export class LocationServiceError extends Error {
+  constructor(public code: string, message?: string) {
+    super(message || code);
+    this.name = "LocationServiceError";
+  }
+}
+
+/**
  * Search for a location using Nominatim API
  * @param query - Location search query (e.g., "Istanbul, Turkey")
  * @param limit - Maximum number of results (default: 10)
  * @returns Array of location results
+ * @throws {LocationServiceError} With error code for translation
  */
 export async function searchLocation(
   query: string,
   limit: number = 10
 ): Promise<NominatimResult[]> {
   if (!query || !query.trim()) {
-    throw new Error("Arama sorgusu boş olamaz");
+    throw new LocationServiceError("emptyQuery");
   }
 
   const url = new URL("https://nominatim.openstreetmap.org/search");
@@ -39,7 +50,7 @@ export async function searchLocation(
   });
 
   if (!response.ok) {
-    throw new Error("Konum araması başarısız oldu");
+    throw new LocationServiceError("searchFailed");
   }
 
   const results: NominatimResult[] = await response.json();

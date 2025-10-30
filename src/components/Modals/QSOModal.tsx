@@ -298,7 +298,7 @@ const QSOModal: React.FC<QSOModalProps> = ({
       console.error("Failed to update grid square from map:", error);
       showToast(t("validation.error.gridSquareUpdateFailed"), "error");
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   // Generate RF Line of Sight URL
   const generateRFLOSUrl = useCallback((): string | null => {

@@ -106,12 +106,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onHide }) => {
     setIsDeleting(true);
     try {
       const deletedCount = await deleteAllQSORecords();
-      showToast(`${deletedCount} QSO kaydı silindi`, "success");
+      showToast(t("validation.success.recordsDeleted", { count: deletedCount }), "success");
       setShowDeleteConfirm(false);
       onHide();
     } catch (error) {
       console.error("Failed to delete all QSO records:", error);
-      showToast("QSO kayıtları silinirken hata oluştu", "error");
+      showToast(t("validation.error.deleteAllFailed"), "error");
     } finally {
       setIsDeleting(false);
     }

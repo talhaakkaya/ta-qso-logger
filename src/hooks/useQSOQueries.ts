@@ -26,6 +26,7 @@ export function useQSOs(logbookId?: string) {
   return useQuery({
     queryKey: qsoKeys.list(logbookId),
     queryFn: () => apiService.getQSORecords(logbookId),
+    enabled: !!logbookId,
   });
 }
 

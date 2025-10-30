@@ -40,6 +40,7 @@
     "todayQso": "TODAY'S QSO",
     "filtered": "FILTERED",
     "uniqueCallsigns": "UNIQUE CALLSIGNS",
+    "noRecords": "No QSO records found",
     "fields": {
       "datetime": "Date/Time",
       "callsign": "Callsign",
@@ -123,6 +124,8 @@
       "allDuplicates": "All records skipped as duplicates",
       "recordsImported": "{count} records imported successfully",
       "recordsImportedWithErrors": "{count} records imported successfully, {errors} records skipped",
+      "recordsImportedWithSkipped": "{count} records imported successfully, {skipped} duplicates skipped",
+      "recordsImportedWithSkippedAndErrors": "{count} records imported successfully, {skipped} duplicates skipped, {errors} records failed",
       "importFailed": "Import failed",
       "importError": "Error occurred during import",
       "importing": "Importing...",
@@ -131,6 +134,8 @@
       "error": "Error!",
       "imported": "Imported:",
       "records": "records",
+      "skipped": "Skipped:",
+      "duplicates": "duplicates",
       "failed": "Failed:",
       "failedOrSkipped": "Failed/Skipped:",
       "errorMessages": "Error messages:",
@@ -198,14 +203,36 @@
       "logbookExists": "A logbook with this name already exists",
       "logbookNameTooLong": "Logbook name too long (maximum 100 characters)",
       "logbookCreateFailed": "Failed to create logbook",
-      "settingsSaveFailed": "Failed to save settings"
+      "settingsSaveFailed": "Failed to save settings",
+      "qsoSaveFailed": "Failed to save QSO record",
+      "qsoDeleteFailed": "Failed to delete QSO record",
+      "deleteAllFailed": "Failed to delete QSO records",
+      "locationSearchFailed": "Location search failed",
+      "locationNotFound": "Location not found",
+      "pleaseEnterLocation": "Please enter a location"
     },
     "success": {
       "gridSquareUpdated": "Grid square updated",
       "qrzDataLoaded": "QRZ data loaded",
       "settingsSaved": "Settings saved",
-      "logbookCreated": "\"{name}\" logbook created"
+      "logbookCreated": "\"{name}\" logbook created",
+      "qsoCreated": "QSO record created",
+      "qsoUpdated": "QSO record updated",
+      "qsoDeleted": "QSO record deleted",
+      "recordsDeleted": "{count} QSO records deleted"
     }
+  },
+  "csvErrors": {
+    "row": "Row",
+    "callsignRequired": "Callsign is missing",
+    "dateTimeRequired": "Date/time is missing",
+    "dateOrTimeRequired": "Date or time is missing",
+    "dateTimeNotFound": "Date/time information not found",
+    "dateTimeParseError": "Date/time could not be parsed"
+  },
+  "csvValidation": {
+    "callsignRequired": "Please map the Callsign field",
+    "dateTimeRequired": "Please map either Date/Time (combined) or Date and Time fields"
   },
   "navigation": {
     "appName": "TA QSO Logger",

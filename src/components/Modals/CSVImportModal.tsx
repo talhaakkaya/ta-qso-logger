@@ -74,6 +74,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
     { value: "qth" as QSOField, label: t("qso.fields.qth") },
     { value: "notes" as QSOField, label: t("qso.fields.notes") },
   ], [t]);
+
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedLogbookId, setSelectedLogbookId] = useState<string>("");
@@ -83,8 +84,8 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
   const [importResult, setImportResult] = useState<{
     success: boolean;
     imported: number;
-    errors: number;
-    errorMessages?: string[];
+    failed?: number;
+    skipped?: number;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,7 +104,13 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
         return;
       }
       setSelectedFile(file);
-      parseCSV(file);
+      // Don't auto-parse - wait for user to click Next button
+    }
+  };
+
+  const handleNext = () => {
+    if (selectedFile) {
+      parseCSV(selectedFile);
     }
   };
 
@@ -154,48 +161,40 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
     // Validate required fields are mapped using CSV service
     const validation = csvService.validateCSVMapping(columnMapping);
     if (!validation.valid) {
-      showToast(validation.message || t("modals.import.invalidMapping"), "error");
+      const errorKey = validation.errorCode === "CALLSIGN_REQUIRED"
+        ? "csvValidation.callsignRequired"
+        : validation.errorCode === "DATETIME_REQUIRED"
+        ? "csvValidation.dateTimeRequired"
+        : "modals.import.invalidMapping";
+      showToast(t(errorKey), "error");
       return;
     }
 
     setIsImporting(true);
-    setStep(3);
 
     try {
-      const result = await importFromCSV(parsedData, columnMapping, selectedLogbookId);
+      // Pass file and column mapping to API (like ADIF import)
+      if (!selectedFile) {
+        throw new Error("No file selected");
+      }
+      const result = await importFromCSV(selectedFile, columnMapping, selectedLogbookId);
       setImportResult(result);
+      setStep(3); // Change to results step after import completes
 
       if (result.success) {
-        if (result.imported === 0) {
-          showToast(result.errorMessages?.[0] || t("modals.import.importFailed"), "warning");
-        } else {
-          let message = t("modals.import.recordsImported", { count: result.imported });
-          if (result.errors > 0) {
-            message = t("modals.import.recordsImportedWithErrors", { count: result.imported, errors: result.errors });
-          }
-          showToast(message, "success");
-
-          // Switch to the imported logbook if it's different from current
-          if (selectedLogbookId && selectedLogbookId !== currentLogbook?.id) {
-            await setCurrentLogbook(selectedLogbookId);
-          }
-
-          setTimeout(() => {
-            handleClose();
-          }, 2000);
+        // Switch to the imported logbook if it's different from current
+        if (result.imported > 0 && selectedLogbookId && selectedLogbookId !== currentLogbook?.id) {
+          await setCurrentLogbook(selectedLogbookId);
         }
-      } else {
-        showToast(t("modals.import.importFailed"), "error");
       }
     } catch (error) {
       console.error("Import error:", error);
-      showToast(t("modals.import.importError"), "error");
       setImportResult({
         success: false,
         imported: 0,
-        errors: 1,
-        errorMessages: [(error as Error).message],
+        failed: 1,
       });
+      setStep(3); // Show error in results step
     } finally {
       setIsImporting(false);
     }
@@ -382,20 +381,16 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
                     <CheckCircle className="w-4 h-4" />
                     {t("modals.import.imported")} <strong>{importResult.imported}</strong> {t("modals.import.records")}
                   </div>
-                  {importResult.errors > 0 && (
+                  {importResult.skipped !== undefined && importResult.skipped > 0 && (
                     <div className="flex items-center gap-2">
-                      <XCircle className="w-4 h-4" />
-                      {t("modals.import.failedOrSkipped")} <strong>{importResult.errors}</strong> {t("modals.import.records")}
+                      <Info className="w-4 h-4" />
+                      {t("modals.import.skipped")} <strong>{importResult.skipped}</strong> {t("modals.import.duplicates")}
                     </div>
                   )}
-                  {importResult.errorMessages && importResult.errorMessages.length > 0 && (
-                    <div className="mt-2">
-                      <div className="text-sm font-semibold mb-1">{t("modals.import.messages")}</div>
-                      <ul className="list-disc list-inside text-sm space-y-1">
-                        {importResult.errorMessages.slice(0, 5).map((msg, idx) => (
-                          <li key={idx}>{msg}</li>
-                        ))}
-                      </ul>
+                  {importResult.failed !== undefined && importResult.failed > 0 && (
+                    <div className="flex items-center gap-2">
+                      <XCircle className="w-4 h-4" />
+                      {t("modals.import.failed")} <strong>{importResult.failed}</strong> {t("modals.import.records")}
                     </div>
                   )}
                 </div>
@@ -406,9 +401,15 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
         </DialogBody>
         <DialogFooter>
           {step === 1 && (
-            <Button variant="secondary" onClick={handleClose}>
-              {t("common.cancel")}
-            </Button>
+            <>
+              <Button variant="secondary" onClick={handleClose}>
+                {t("common.cancel")}
+              </Button>
+              <Button onClick={handleNext} disabled={!selectedFile || !selectedLogbookId}>
+                <ArrowRight className="w-4 h-4 mr-1" />
+                {t("common.next")}
+              </Button>
+            </>
           )}
           {step === 2 && (
             <>
@@ -419,13 +420,23 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({ show, onHide }) => {
                   setParsedData(null);
                   setSelectedFile(null);
                 }}
+                disabled={isImporting}
               >
                 {t("modals.import.back")}
               </Button>
-              <Button onClick={handleImport}>
-                <FileSpreadsheet />
-                <span className="hidden sm:inline">{t("modals.import.importCount", { count: parsedData?.rows.length || 0 })}</span>
-                <span className="sm:hidden">{t("modals.import.import")}</span>
+              <Button onClick={handleImport} disabled={isImporting}>
+                {isImporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {t("modals.import.importing")}
+                  </>
+                ) : (
+                  <>
+                    <FileSpreadsheet className="w-4 h-4 mr-1" />
+                    <span className="hidden sm:inline">{t("modals.import.importCount", { count: parsedData?.rows.length || 0 })}</span>
+                    <span className="sm:hidden">{t("modals.import.import")}</span>
+                  </>
+                )}
               </Button>
             </>
           )}

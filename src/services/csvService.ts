@@ -50,7 +50,7 @@ function parseCSVDateTime(
     // Combined datetime field - parse it
     const datetimeStr = row[fieldToIndex.datetime]?.trim() || "";
     if (!datetimeStr) {
-      throw new Error("Tarih/saat eksik");
+      throw new Error("dateTimeRequired");
     }
     datetime = parseDateTime(datetimeStr) || "";
   } else if (fieldToIndex.date !== undefined && fieldToIndex.time !== undefined) {
@@ -59,16 +59,16 @@ function parseCSVDateTime(
     const timeStr = row[fieldToIndex.time]?.trim() || "";
 
     if (!dateStr || !timeStr) {
-      throw new Error("Tarih veya saat eksik");
+      throw new Error("dateOrTimeRequired");
     }
 
     datetime = parseDateTime(dateStr, timeStr) || "";
   } else {
-    throw new Error("Tarih/saat bilgisi bulunamadı");
+    throw new Error("dateTimeNotFound");
   }
 
   if (!datetime) {
-    throw new Error("Tarih/saat ayrıştırılamadı");
+    throw new Error("dateTimeParseError");
   }
 
   return datetime;
@@ -151,7 +151,7 @@ async function processCSVRow(
   // Required field: callsign
   const callsign = parseCSVCallsign(row, fieldToIndex);
   if (!callsign) {
-    throw new Error("Çağrı işareti eksik");
+    throw new Error("callsignRequired");
   }
 
   // Required field: datetime
@@ -171,17 +171,43 @@ async function processCSVRow(
 }
 
 /**
+ * Check if a QSO record is a duplicate
+ * Compares: callsign (case-insensitive) + datetime (ISO) + frequency
+ */
+function isDuplicateRecord(
+  record: Partial<QSORecord>,
+  existingRecords: QSORecord[]
+): boolean {
+  return existingRecords.some((existing) => {
+    // Convert both datetimes to ISO strings for comparison
+    const existingDate = new Date(existing.datetime).toISOString();
+    const recordDate = record.datetime ? new Date(record.datetime).toISOString() : "";
+
+    // Compare case-insensitively for callsign
+    const existingFreq = existing.freq || 0;
+    const recordFreq = record.freq || 0;
+
+    return (
+      existingDate === recordDate &&
+      existing.callsign.toUpperCase() === (record.callsign?.toUpperCase() || "") &&
+      existingFreq === recordFreq
+    );
+  });
+}
+
+/**
  * Import QSO records from parsed CSV data with column mapping
  */
 export async function importCSVRecords(
   parsedData: ParsedCSV,
   columnMapping: CSVFieldMapping,
+  existingRecords: QSORecord[] = [],
   logbookId?: string
 ): Promise<ImportResult> {
   const importedRecords: QSORecord[] = [];
-  const errorMessages: string[] = [];
   let successCount = 0;
-  let errorCount = 0;
+  let failedCount = 0;
+  let skippedCount = 0;
 
   // Create field mapping
   const fieldToIndex = createFieldToIndexMap(parsedData.headers, columnMapping);
@@ -192,21 +218,53 @@ export async function importCSVRecords(
     const rowNum = i + 2; // +2 because header is row 1, and array is 0-indexed
 
     try {
-      const savedRecord = await processCSVRow(row, rowNum, fieldToIndex, logbookId);
+      // Parse row data first to check for duplicates
+      const qsoData: Partial<QSORecord> = {};
+
+      // Required field: callsign
+      const callsign = parseCSVCallsign(row, fieldToIndex);
+      if (!callsign) {
+        throw new Error("callsignRequired");
+      }
+
+      // Required field: datetime
+      const datetime = parseCSVDateTime(row, fieldToIndex, rowNum);
+
+      // Combine required fields
+      qsoData.callsign = callsign;
+      qsoData.datetime = datetime;
+
+      // Parse optional fields
+      const optionalFields = parseOptionalFields(row, fieldToIndex);
+      Object.assign(qsoData, optionalFields);
+
+      // Check for duplicates
+      if (isDuplicateRecord(qsoData, existingRecords)) {
+        skippedCount++;
+        continue;
+      }
+
+      // Create the record via API with logbookId
+      const savedRecord = await apiService.createQSORecord(
+        qsoData as Omit<QSORecord, "id">,
+        logbookId
+      );
       importedRecords.push(savedRecord);
+      // Add to existing records to prevent duplicates within the same import
+      existingRecords.push(savedRecord);
       successCount++;
     } catch (error) {
       console.error(`Error importing row ${rowNum}:`, error);
-      errorMessages.push(`Satır ${rowNum}: ${(error as Error).message}`);
-      errorCount++;
+      // Just count the failure, like ADIF import does
+      failedCount++;
     }
   }
 
   return {
     success: successCount > 0,
     imported: successCount,
-    errors: errorCount,
-    errorMessages: errorMessages.slice(0, 10), // Limit to 10 error messages
+    failed: failedCount,
+    skipped: skippedCount,
     records: importedRecords,
   };
 }
@@ -217,7 +275,7 @@ export async function importCSVRecords(
  */
 export function validateCSVMapping(columnMapping: CSVFieldMapping): {
   valid: boolean;
-  message?: string;
+  errorCode?: string;
 } {
   const mappedFields = Object.values(columnMapping);
 
@@ -225,7 +283,7 @@ export function validateCSVMapping(columnMapping: CSVFieldMapping): {
   if (!mappedFields.includes("callsign")) {
     return {
       valid: false,
-      message: "Lütfen Çağrı İşareti alanını eşleştirin",
+      errorCode: "CALLSIGN_REQUIRED",
     };
   }
 
@@ -237,7 +295,7 @@ export function validateCSVMapping(columnMapping: CSVFieldMapping): {
   if (!hasDatetime && !(hasDate && hasTime)) {
     return {
       valid: false,
-      message: "Lütfen Tarih/Saat (birleşik) veya Tarih ve Saat alanlarını eşleştirin",
+      errorCode: "DATETIME_REQUIRED",
     };
   }
 

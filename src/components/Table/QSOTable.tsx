@@ -35,7 +35,7 @@ const QSOTable: React.FC = () => {
   const deleteModal = useModal<QSORecord>();
   const { handleSave, handleDelete } = useQSOActions();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: "datetime", desc: true }]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
 
   // Reset expanded state when logbook changes to prevent stale expansion
@@ -331,7 +331,7 @@ const QSOTable: React.FC = () => {
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">
                       <Inbox className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
-                      <div className="text-muted-foreground">Henüz QSO kaydı bulunmuyor</div>
+                      <div className="text-muted-foreground">{t("qso.noRecords")}</div>
                     </TableCell>
                   </TableRow>
                 )}

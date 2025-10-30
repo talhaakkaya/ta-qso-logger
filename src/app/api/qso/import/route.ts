@@ -83,8 +83,7 @@ export async function POST(request: NextRequest) {
         success: false,
         imported: 0,
         failed: 0,
-        failedCallsigns: [],
-        errorMessages: ["Dosyada içe aktarılacak geçerli kayıt bulunamadı"],
+        skipped: 0,
         records: [],
       });
     }
@@ -132,21 +131,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Prepare error messages
-    const errorMessages = [];
-    if (skippedDuplicates > 0) {
-      errorMessages.push(`${skippedDuplicates} tekrarlayan kayıt atlandı`);
-    }
-    if (failedRecords.length > 0) {
-      errorMessages.push(`${failedRecords.length} kayıt kaydedilemedi`);
-    }
-
     return NextResponse.json({
       success: true,
       imported: savedRecords.length,
+      skipped: skippedDuplicates,
       failed: failedRecords.length,
       failedCallsigns: failedRecords,
-      errorMessages: errorMessages.length > 0 ? errorMessages : undefined,
       records: savedRecords,
     });
   } catch (error) {

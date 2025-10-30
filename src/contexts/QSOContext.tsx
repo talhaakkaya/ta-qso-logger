@@ -63,7 +63,7 @@ interface QSOContextType {
   exportToADIF: () => Promise<void>;
   importFromADIF: (file: File, logbookId?: string) => Promise<ImportResult>;
   importFromCSV: (
-    parsedData: { headers: string[]; rows: string[][] },
+    file: File,
     columnMapping: Record<string, string>,
     logbookId?: string
   ) => Promise<ImportResult>;
@@ -285,8 +285,8 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
         return {
           success: result.success,
           imported: result.imported,
-          errors: result.errors || 0,
-          errorMessages: result.errorMessages,
+          skipped: result.skipped,
+          failed: result.failed,
         };
       } catch (error) {
         console.error("Failed to import QSO records:", error);
@@ -298,7 +298,7 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const importFromCSV = useCallback(
     async (
-      parsedData: { headers: string[]; rows: string[][] },
+      file: File,
       columnMapping: Record<string, string>,
       logbookId?: string
     ): Promise<ImportResult> => {
@@ -306,14 +306,36 @@ export const QSOProvider: React.FC<{ children: React.ReactNode }> = ({
         // Use provided logbookId or default to current logbook
         const targetLogbookId = logbookId || currentLogbook?.id;
 
-        // Use CSV service for import logic
-        const result = await csvService.importCSVRecords(parsedData, columnMapping, targetLogbookId);
+        // Call API endpoint like ADIF import does
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("columnMapping", JSON.stringify(columnMapping));
+        if (targetLogbookId) {
+          formData.append("logbookId", targetLogbookId);
+        }
+
+        const response = await fetch("/api/qso/import/csv", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Failed to import CSV");
+        }
+
+        const result = await response.json();
 
         // Refresh QSOs and logbooks after import
         await refetchQSOs();
         await refetchLogbooks();
 
-        return result;
+        return {
+          success: result.success,
+          imported: result.imported,
+          skipped: result.skipped,
+          failed: result.failed,
+        };
       } catch (error) {
         console.error("Failed to import CSV records:", error);
         throw error;

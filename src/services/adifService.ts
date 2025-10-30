@@ -274,13 +274,13 @@ class ADIFService {
           // Validate required fields
           if (!qsoData.callsign) {
             errors++;
-            errorMessages.push(`Kayıt ${index + 1}: Çağrı işareti eksik`);
+            errorMessages.push(`Record ${index + 1}: Callsign missing`);
             return;
           }
 
           if (!qsoData.qsoDate) {
             errors++;
-            errorMessages.push(`Kayıt ${index + 1}: Tarih eksik`);
+            errorMessages.push(`Record ${index + 1}: Date missing`);
             return;
           }
 
@@ -308,7 +308,7 @@ class ADIFService {
           if (validationErrors.length > 0) {
             errors++;
             errorMessages.push(
-              `Kayıt ${index + 1}: ${validationErrors.map((e) => e.message).join(", ")}`,
+              `Record ${index + 1}: ${validationErrors.map((e) => e.message).join(", ")}`,
             );
             return;
           }
@@ -316,7 +316,7 @@ class ADIFService {
           importedRecords.push(record);
         } catch (error) {
           errors++;
-          errorMessages.push(`Kayıt ${index + 1}: İşleme hatası`);
+          errorMessages.push(`Record ${index + 1}: Processing error`);
         }
       });
 
@@ -332,7 +332,7 @@ class ADIFService {
         success: false,
         imported: 0,
         errors: 1,
-        errorMessages: [`ADIF dosyası okunamadı: ${(error as Error).message}`],
+        errorMessages: [`Failed to read ADIF file: ${(error as Error).message}`],
         records: [],
       };
     }

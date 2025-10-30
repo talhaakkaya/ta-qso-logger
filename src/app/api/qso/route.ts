@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         deletedAt: null,
       },
       orderBy: {
-        createdAt: "desc",
+        qsoDate: "desc",
       },
     });
 

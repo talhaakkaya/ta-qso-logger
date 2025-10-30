@@ -40,6 +40,7 @@
     "todayQso": "BUGÜNKÜ QSO",
     "filtered": "FİLTRELENMİŞ",
     "uniqueCallsigns": "BENZERSİZ ÇAĞRI İŞARETLERİ",
+    "noRecords": "Henüz QSO kaydı bulunmuyor",
     "fields": {
       "datetime": "Tarih/Saat",
       "callsign": "Çağrı İşareti",
@@ -123,6 +124,8 @@
       "allDuplicates": "Tüm kayıtlar tekrarlayan kayıt olarak atlandı",
       "recordsImported": "{count} kayıt başarıyla içe aktarıldı",
       "recordsImportedWithErrors": "{count} kayıt başarıyla içe aktarıldı, {errors} kayıt atlandı",
+      "recordsImportedWithSkipped": "{count} kayıt başarıyla içe aktarıldı, {skipped} tekrarlayan kayıt atlandı",
+      "recordsImportedWithSkippedAndErrors": "{count} kayıt başarıyla içe aktarıldı, {skipped} tekrarlayan kayıt atlandı, {errors} kayıt hatalı",
       "importFailed": "İçe aktarma başarısız oldu",
       "importError": "İçe aktarma sırasında hata oluştu",
       "importing": "İçe Aktarılıyor...",
@@ -131,6 +134,8 @@
       "error": "Hata!",
       "imported": "İçe aktarılan:",
       "records": "kayıt",
+      "skipped": "Atlanan:",
+      "duplicates": "tekrarlayan kayıt",
       "failed": "Hatalı:",
       "failedOrSkipped": "Hatalı/Atlanan:",
       "errorMessages": "Hata mesajları:",
@@ -198,14 +203,36 @@
       "logbookExists": "Bu isimde bir logbook zaten mevcut",
       "logbookNameTooLong": "Logbook adı çok uzun (maksimum 100 karakter)",
       "logbookCreateFailed": "Logbook oluşturulurken hata oluştu",
-      "settingsSaveFailed": "Ayarlar kaydedilirken hata oluştu"
+      "settingsSaveFailed": "Ayarlar kaydedilirken hata oluştu",
+      "qsoSaveFailed": "QSO kaydı kaydedilirken hata oluştu",
+      "qsoDeleteFailed": "QSO kaydı silinirken hata oluştu",
+      "deleteAllFailed": "QSO kayıtları silinirken hata oluştu",
+      "locationSearchFailed": "Konum araması başarısız oldu",
+      "locationNotFound": "Konum bulunamadı",
+      "pleaseEnterLocation": "Lütfen bir konum girin"
     },
     "success": {
       "gridSquareUpdated": "Grid square güncellendi",
       "qrzDataLoaded": "QRZ verisi yüklendi",
       "settingsSaved": "Ayarlar kaydedildi",
-      "logbookCreated": "\"{name}\" logbook'u oluşturuldu"
+      "logbookCreated": "\"{name}\" logbook'u oluşturuldu",
+      "qsoCreated": "QSO kaydı oluşturuldu",
+      "qsoUpdated": "QSO kaydı güncellendi",
+      "qsoDeleted": "QSO kaydı silindi",
+      "recordsDeleted": "{count} QSO kaydı silindi"
     }
+  },
+  "csvErrors": {
+    "row": "Satır",
+    "callsignRequired": "Çağrı işareti eksik",
+    "dateTimeRequired": "Tarih/saat eksik",
+    "dateOrTimeRequired": "Tarih veya saat eksik",
+    "dateTimeNotFound": "Tarih/saat bilgisi bulunamadı",
+    "dateTimeParseError": "Tarih/saat ayrıştırılamadı"
+  },
+  "csvValidation": {
+    "callsignRequired": "Lütfen Çağrı İşareti alanını eşleştirin",
+    "dateTimeRequired": "Lütfen Tarih/Saat (birleşik) veya Tarih ve Saat alanlarını eşleştirin"
   },
   "navigation": {
     "appName": "TA QSO Logger",

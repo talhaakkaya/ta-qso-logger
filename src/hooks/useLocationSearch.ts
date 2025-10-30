@@ -5,7 +5,8 @@
  */
 
 import { useState, useCallback } from "react";
-import locationService, { NominatimResult } from "@/services/locationService";
+import { useTranslations } from "next-intl";
+import locationService, { NominatimResult, LocationServiceError } from "@/services/locationService";
 
 export interface UseLocationSearchReturn {
   query: string;
@@ -21,15 +22,12 @@ export interface UseLocationSearchReturn {
  * @returns Location search state and control functions
  */
 export function useLocationSearch(): UseLocationSearchReturn {
+  const t = useTranslations();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<NominatimResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   const search = useCallback(async () => {
-    if (!query.trim()) {
-      throw new Error("Lütfen bir konum girin");
-    }
-
     setIsSearching(true);
     setResults([]);
 
@@ -38,15 +36,25 @@ export function useLocationSearch(): UseLocationSearchReturn {
       setResults(searchResults);
 
       if (searchResults.length === 0) {
-        throw new Error("Konum bulunamadı");
+        throw new Error(t("validation.error.locationNotFound"));
       }
     } catch (error) {
       console.error("Location search error:", error);
+
+      // Translate service error codes
+      if (error instanceof LocationServiceError) {
+        if (error.code === "emptyQuery") {
+          throw new Error(t("validation.error.pleaseEnterLocation"));
+        } else if (error.code === "searchFailed") {
+          throw new Error(t("validation.error.locationSearchFailed"));
+        }
+      }
+
       throw error;
     } finally {
       setIsSearching(false);
     }
-  }, [query]);
+  }, [query, t]);
 
   const clearResults = useCallback(() => {
     setResults([]);

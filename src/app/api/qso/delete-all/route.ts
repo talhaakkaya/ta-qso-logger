@@ -36,12 +36,11 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({
       success: true,
       deletedCount: result.count,
-      message: `${result.count} QSO kaydı silindi`,
     });
   } catch (error) {
     console.error("Error deleting QSO records:", error);
     return NextResponse.json(
-      { error: "Failed to delete QSO records" },
+      { success: false, deletedCount: 0 },
       { status: 500 },
     );
   }

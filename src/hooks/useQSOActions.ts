@@ -5,6 +5,7 @@
  */
 
 import { useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { QSORecord } from "@/types";
 import { useQSO } from "@/contexts/QSOContext";
 import { useToast } from "@/hooks/useToast";
@@ -19,6 +20,7 @@ export interface UseQSOActionsReturn {
  * @returns Object with save and delete handler functions
  */
 export function useQSOActions(): UseQSOActionsReturn {
+  const t = useTranslations();
   const { createQSORecordImmediate, updateQSORecordImmediate, deleteQSORecord } = useQSO();
   const { showToast } = useToast();
 
@@ -28,33 +30,33 @@ export function useQSOActions(): UseQSOActionsReturn {
         if ("id" in data) {
           // Edit mode
           await updateQSORecordImmediate(data.id, data);
-          showToast("QSO kaydı güncellendi", "success");
+          showToast(t("validation.success.qsoUpdated"), "success");
         } else {
           // Create mode
           await createQSORecordImmediate(data);
-          showToast("QSO kaydı oluşturuldu", "success");
+          showToast(t("validation.success.qsoCreated"), "success");
         }
       } catch (error) {
         console.error("Failed to save QSO:", error);
-        showToast("QSO kaydı kaydedilirken hata oluştu", "error");
+        showToast(t("validation.error.qsoSaveFailed"), "error");
         throw error;
       }
     },
-    [createQSORecordImmediate, updateQSORecordImmediate, showToast]
+    [createQSORecordImmediate, updateQSORecordImmediate, showToast, t]
   );
 
   const handleDelete = useCallback(
     async (id: string) => {
       try {
         await deleteQSORecord(id);
-        showToast("QSO kaydı silindi", "success");
+        showToast(t("validation.success.qsoDeleted"), "success");
       } catch (error) {
         console.error("Delete failed:", error);
-        showToast("QSO kaydı silinirken hata oluştu", "error");
+        showToast(t("validation.error.qsoDeleteFailed"), "error");
         throw error;
       }
     },
-    [deleteQSORecord, showToast]
+    [deleteQSORecord, showToast, t]
   );
 
   return {

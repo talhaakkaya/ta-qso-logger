@@ -28,7 +28,9 @@ export interface QSOStatistics {
 export interface ImportResult {
   success: boolean;
   imported: number;
-  errors: number;
+  errors?: number;
+  skipped?: number;
+  failed?: number;
   errorMessages?: string[];
   records?: QSORecord[];
 }
