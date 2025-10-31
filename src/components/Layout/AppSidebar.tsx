@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 interface AppSidebarProps {
   onShowSettings: () => void;
@@ -115,7 +116,7 @@ export function AppSidebar({
                       <div className="flex items-center justify-between w-full gap-2">
                         <span>{logbook.name}</span>
                         <span className="text-xs text-muted-foreground">
-                          {logbook.qsoCount}
+                          ({logbook.qsoCount})
                         </span>
                       </div>
                     </SelectItem>
