@@ -115,7 +115,7 @@ export function AppSidebar({
                       <div className="flex items-center justify-between w-full gap-2">
                         <span>{logbook.name}</span>
                         <span className="text-xs text-muted-foreground">
-                          ({logbook.qsoCount} {t("qso.qso")})
+                          {logbook.qsoCount}
                         </span>
                       </div>
                     </SelectItem>
