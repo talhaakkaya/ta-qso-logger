@@ -14,6 +14,7 @@ const Footer: React.FC = () => {
           <div className="text-center md:text-left mb-2 md:mb-0">
             <p className="text-sm mb-1 text-muted-foreground">
               <Radio className="inline w-4 h-4 mr-2" />
+              {t("common.footer.beforeTA1TLA")}
               <a
                 href="https://www.qrz.com/db/TA1TLA"
                 target="_blank"
@@ -22,11 +23,11 @@ const Footer: React.FC = () => {
               >
                 TA1TLA
               </a>
-              {t("common.footer.inspiredBy")}
+              {t("common.footer.afterTA1TLA")}
             </p>
             <p className="text-sm mb-0 text-muted-foreground">
               <Code className="inline w-4 h-4 mr-2" />
-              {t("common.footer.developedBy")}{" "}
+              {t("common.footer.beforeTA1VAL")}
               <a
                 href="https://www.qrz.com/db/TA1VAL"
                 target="_blank"
@@ -35,6 +36,7 @@ const Footer: React.FC = () => {
               >
                 TA1VAL
               </a>
+              {t("common.footer.afterTA1VAL")}
             </p>
           </div>
           <div className="text-center md:text-right">

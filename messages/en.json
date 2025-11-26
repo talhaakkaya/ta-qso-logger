@@ -26,8 +26,10 @@
     "qsoDeleted": "QSO record deleted",
     "qsoDeleteFailed": "Failed to delete QSO record",
     "footer": {
-      "inspiredBy": "'s QSO Logger inspired this project",
-      "developedBy": "Developed by",
+      "beforeTA1TLA": "Inspired by ",
+      "afterTA1TLA": "'s QSO Logger",
+      "beforeTA1VAL": "Developed by ",
+      "afterTA1VAL": "",
       "sign73": "73! Good QSOs!"
     }
   },

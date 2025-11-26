@@ -26,8 +26,10 @@
     "qsoDeleted": "QSO kaydı silindi",
     "qsoDeleteFailed": "QSO kaydı silinirken hata oluştu",
     "footer": {
-      "inspiredBy": "'nin QSO Logger'ından ilham alınmıştır",
-      "developedBy": "tarafından geliştirilmektedir",
+      "beforeTA1TLA": "",
+      "afterTA1TLA": "'nin QSO Logger'ından ilham alınmıştır.",
+      "beforeTA1VAL": "",
+      "afterTA1VAL": " tarafından geliştirilmektedir.",
       "sign73": "73! İyi QSO'lar!"
     }
   },
