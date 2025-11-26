@@ -316,7 +316,11 @@
       }
     },
     "footer": "73! İyi QSO'lar!",
-    "credits": "TA1TLA'nin QSO Logger'ından ilham alınarak TA1VAL tarafından geliştirilmiştir."
+    "credits": {
+      "beforeTA1TLA": "",
+      "betweenLinks": "'nin QSO Logger'ından ilham alınarak ",
+      "afterTA1VAL": " tarafından geliştirilmiştir."
+    }
   },
   "qcodes": {
     "QRA": "İstasyonunuzun adı nedir?",

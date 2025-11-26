@@ -316,7 +316,11 @@
       }
     },
     "footer": "73! Good QSOs!",
-    "credits": "Developed by TA1VAL, inspired by TA1TLA's QSO Logger."
+    "credits": {
+      "beforeTA1TLA": "Inspired by ",
+      "betweenLinks": "'s QSO Logger, developed by ",
+      "afterTA1VAL": "."
+    }
   },
   "qcodes": {
     "QRA": "What is the name of your station?",

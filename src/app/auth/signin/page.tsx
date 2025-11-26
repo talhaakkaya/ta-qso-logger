@@ -44,7 +44,7 @@ export default function SignIn() {
     <div className="min-h-screen bg-[#f8f8f8] dark:bg-background">
       {/* Theme Toggle & Language Switcher */}
       {mounted && (
-        <div className="fixed top-4 right-4 z-50 flex gap-2">
+        <div className="absolute top-4 right-4 z-50 flex gap-2">
           {/* Language Switcher */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -194,6 +194,7 @@ export default function SignIn() {
             </p>
             <p className="text-muted-foreground mb-6">{t("auth.footer")}</p>
             <p className="text-xs text-muted-foreground">
+              {t("auth.credits.beforeTA1TLA")}
               <a
                 href="https://www.qrz.com/db/TA1TLA"
                 target="_blank"
@@ -202,7 +203,7 @@ export default function SignIn() {
               >
                 TA1TLA
               </a>
-              {locale === "tr" ? "'nin QSO Logger'ından ilham alınarak " : "'s QSO Logger, developed by "}
+              {t("auth.credits.betweenLinks")}
               <a
                 href="https://www.qrz.com/db/TA1VAL"
                 target="_blank"
@@ -211,7 +212,7 @@ export default function SignIn() {
               >
                 TA1VAL
               </a>
-              {locale === "tr" ? " tarafından geliştirilmiştir." : "."}
+              {t("auth.credits.afterTA1VAL")}
             </p>
           </div>
         </div>
